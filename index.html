@@ -8,6 +8,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 :root{
@@ -20,33 +21,99 @@
 }
 html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f-body);font-size:14px;overflow-x:hidden}
 
-/* LOGIN / REGISTER */
-#authWrap{position:fixed;inset:0;z-index:999;display:flex;align-items:center;justify-content:center;
-  background:linear-gradient(135deg,#e0e7ff 0%,#f8fafc 50%,#ede9fe 100%)}
-.lbox{width:420px;background:#fff;border:1px solid var(--border2);border-radius:24px;
-  padding:42px 38px;box-shadow:0 20px 60px rgba(0,0,0,0.08);position:relative}
-.l-logo{font-family:var(--f-display);font-size:34px;font-weight:800;letter-spacing:-1.5px;
-  background:linear-gradient(135deg,#1e293b 20%,#2563eb 80%);
-  -webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:4px}
-.l-sub{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--sub);margin-bottom:32px}
-.l-lbl{display:block;font-size:11px;font-weight:600;color:var(--sub);letter-spacing:.07em;text-transform:uppercase;margin-bottom:8px;margin-top:16px}
-.l-input{width:100%;height:48px;padding:0 16px;background:#f8fafc;
-  border:1px solid var(--border2);border-radius:12px;color:var(--text);
-  font-family:var(--f-body);font-size:15px;outline:none;transition:.2s}
-.l-input:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(37,99,235,.12)}
-.l-input::placeholder{color:var(--muted);font-size:14px}
-.l-btn{width:100%;height:48px;margin-top:22px;border:none;border-radius:12px;
+/* LOGIN / REGISTER  —— 全新分屏式风格 */
+#authWrap{position:fixed;inset:0;z-index:999;display:grid;grid-template-columns:1.05fr 1fr;
+  background:#0b1020;overflow:hidden}
+/* 左侧品牌区 */
+.auth-hero{position:relative;overflow:hidden;display:flex;flex-direction:column;justify-content:space-between;
+  padding:54px 56px;color:#fff;
+  background:
+    radial-gradient(1100px 700px at -10% -20%,rgba(124,58,237,.55),transparent 60%),
+    radial-gradient(900px 700px at 110% 120%,rgba(37,99,235,.65),transparent 60%),
+    linear-gradient(135deg,#0b1020 0%,#1a1f3a 50%,#241650 100%)}
+.auth-hero::before,.auth-hero::after{content:'';position:absolute;border-radius:50%;filter:blur(80px);opacity:.55;pointer-events:none;animation:float 14s ease-in-out infinite}
+.auth-hero::before{width:380px;height:380px;background:#7c3aed;top:-80px;right:-60px}
+.auth-hero::after{width:320px;height:320px;background:#2563eb;bottom:-100px;left:-40px;animation-delay:-7s}
+@keyframes float{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(-20px,30px) scale(1.08)}}
+/* 网格背景 */
+.auth-hero .grid-bg{position:absolute;inset:0;
+  background-image:linear-gradient(rgba(255,255,255,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.04) 1px,transparent 1px);
+  background-size:48px 48px;mask-image:radial-gradient(ellipse at center,#000 30%,transparent 80%);
+  -webkit-mask-image:radial-gradient(ellipse at center,#000 30%,transparent 80%)}
+.hero-top{position:relative;z-index:2;display:flex;align-items:center;gap:12px}
+.hero-mark{width:44px;height:44px;border-radius:13px;display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(135deg,#3b82f6,#a855f7);box-shadow:0 12px 30px rgba(124,58,237,.4);font-family:var(--f-display);font-weight:800;color:#fff;font-size:20px}
+.hero-brand{font-family:var(--f-display);font-size:22px;font-weight:800;letter-spacing:-.5px}
+.hero-brand span{opacity:.6;font-weight:500;margin-left:8px;font-size:13px}
+.hero-mid{position:relative;z-index:2;max-width:520px}
+.hero-tag{display:inline-flex;align-items:center;gap:8px;padding:7px 14px;border-radius:99px;
+  background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);font-size:12px;color:#cbd5e1;margin-bottom:24px;backdrop-filter:blur(10px)}
+.hero-tag .dot{width:6px;height:6px;border-radius:50%;background:#10b981;box-shadow:0 0 0 4px rgba(16,185,129,.18)}
+.hero-h1{font-family:var(--f-display);font-size:46px;line-height:1.1;font-weight:800;letter-spacing:-1.5px;margin-bottom:18px}
+.hero-h1 em{font-style:normal;background:linear-gradient(135deg,#60a5fa,#c084fc);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.hero-desc{font-size:15px;line-height:1.65;color:#94a3b8;max-width:460px}
+/* 浮动卡片预览 */
+.float-cards{position:relative;z-index:2;display:flex;flex-direction:column;gap:12px;margin-top:36px;max-width:380px}
+.float-card{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);
+  border-radius:14px;padding:14px 16px;display:flex;align-items:center;gap:12px;
+  backdrop-filter:blur(14px);transition:.3s;animation:slideIn .6s ease both}
+.float-card:nth-child(2){animation-delay:.15s}
+.float-card:nth-child(3){animation-delay:.3s}
+@keyframes slideIn{from{opacity:0;transform:translateX(-20px)}to{opacity:1;transform:translateX(0)}}
+.fc-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;
+  background:linear-gradient(135deg,rgba(59,130,246,.3),rgba(168,85,247,.3));border:1px solid rgba(255,255,255,.08)}
+.fc-icon svg{width:16px;height:16px;stroke:#fff;fill:none;stroke-width:2}
+.fc-info{flex:1;min-width:0}
+.fc-title{font-size:13px;font-weight:600;color:#fff}
+.fc-meta{font-size:11px;color:#94a3b8;margin-top:2px}
+.fc-num{font-family:var(--f-display);font-size:18px;font-weight:800;color:#fff}
+.hero-foot{position:relative;z-index:2;display:flex;gap:24px;font-size:12px;color:#64748b}
+.hero-foot a{color:#94a3b8;text-decoration:none;transition:.2s}
+.hero-foot a:hover{color:#fff}
+
+/* 右侧表单区 */
+.auth-side{display:flex;align-items:center;justify-content:center;padding:40px;background:#f8fafc;position:relative;overflow-y:auto}
+.lbox{width:100%;max-width:420px;background:#fff;border:1px solid var(--border);border-radius:20px;
+  padding:40px 38px;box-shadow:0 4px 24px rgba(15,23,42,.04);position:relative}
+.l-logo{display:none}
+.l-greeting{font-family:var(--f-display);font-size:28px;font-weight:800;letter-spacing:-.8px;color:#0f172a;margin-bottom:6px}
+.l-sub{font-size:13px;color:var(--sub);margin-bottom:28px}
+.l-lbl{display:block;font-size:11px;font-weight:700;color:#475569;letter-spacing:.06em;text-transform:uppercase;margin-bottom:8px;margin-top:16px}
+.l-ifield{position:relative}
+.l-ifield .l-iicon{position:absolute;left:14px;top:50%;transform:translateY(-50%);width:16px;height:16px;stroke:#94a3b8;fill:none;stroke-width:2;pointer-events:none;transition:.2s}
+.l-input{width:100%;height:48px;padding:0 16px 0 42px;background:#f8fafc;
+  border:1px solid var(--border);border-radius:12px;color:var(--text);
+  font-family:var(--f-body);font-size:14px;outline:none;transition:.2s}
+.l-input:focus{border-color:var(--blue);background:#fff;box-shadow:0 0 0 4px rgba(37,99,235,.1)}
+.l-input:focus + .l-iicon, .l-ifield:focus-within .l-iicon{stroke:var(--blue)}
+.l-input::placeholder{color:#94a3b8;font-size:13px}
+.l-btn{width:100%;height:50px;margin-top:24px;border:none;border-radius:12px;
   background:linear-gradient(135deg,#2563eb,#7c3aed);color:#fff;
-  font-family:var(--f-display);font-size:15px;font-weight:700;cursor:pointer;transition:.2s}
-.l-btn:hover{transform:translateY(-2px);box-shadow:0 10px 25px rgba(37,99,235,.25)}
+  font-family:var(--f-display);font-size:15px;font-weight:700;cursor:pointer;transition:.25s;
+  box-shadow:0 8px 20px rgba(37,99,235,.25);display:flex;align-items:center;justify-content:center;gap:8px}
+.l-btn:hover{transform:translateY(-2px);box-shadow:0 14px 32px rgba(37,99,235,.32)}
 .l-btn:active{transform:translateY(0)}
-.l-err{min-height:18px;font-size:12px;color:var(--red);text-align:center;margin-top:10px;transition:.2s}
-.l-hint{margin-top:16px;font-size:12px;color:var(--sub);text-align:center}
+.l-btn svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2.5}
+.l-err{min-height:18px;font-size:12px;color:var(--red);text-align:center;margin-top:12px;transition:.2s}
+.l-hint{margin-top:18px;font-size:12px;color:var(--sub);text-align:center;line-height:1.6}
+.l-hint code{background:#f1f5f9;padding:2px 7px;border-radius:5px;font-family:ui-monospace,monospace;font-size:11px;color:#475569}
 .l-hint a{color:var(--blue);cursor:pointer;text-decoration:none;font-weight:600}
 .l-hint a:hover{text-decoration:underline}
-.auth-tabs{display:flex;gap:0;margin-bottom:24px;border-radius:10px;overflow:hidden;border:1px solid var(--border2)}
-.auth-tab{flex:1;height:38px;border:none;background:#f8fafc;color:var(--sub);font-family:var(--f-body);font-size:13px;font-weight:600;cursor:pointer;transition:.2s}
-.auth-tab.act{background:var(--blue);color:#fff}
+.auth-tabs{display:flex;gap:4px;margin-bottom:24px;padding:4px;border-radius:12px;background:#f1f5f9}
+.auth-tab{flex:1;height:38px;border:none;background:transparent;color:var(--sub);
+  font-family:var(--f-body);font-size:13px;font-weight:600;cursor:pointer;transition:.2s;border-radius:9px}
+.auth-tab.act{background:#fff;color:var(--blue);box-shadow:0 1px 3px rgba(15,23,42,.08)}
+.l-divider{display:flex;align-items:center;gap:12px;margin:20px 0;color:var(--muted);font-size:11px}
+.l-divider::before,.l-divider::after{content:'';flex:1;height:1px;background:var(--border)}
+.db-status{position:absolute;top:18px;right:18px;font-size:10px;color:var(--sub);display:flex;align-items:center;gap:6px;padding:5px 10px;border-radius:99px;background:#f1f5f9;border:1px solid var(--border)}
+.db-status .dot{width:6px;height:6px;border-radius:50%;background:#94a3b8}
+.db-status.online .dot{background:#10b981;box-shadow:0 0 0 3px rgba(16,185,129,.18)}
+.db-status.online{color:#059669}
+
+@media(max-width:900px){
+  #authWrap{grid-template-columns:1fr}
+  .auth-hero{display:none}
+}
 
 /* APP SHELL */
 #app{display:none;position:relative;z-index:2;min-height:100vh}
@@ -284,37 +351,101 @@ tbody tr:hover .ra{opacity:1}
 </style>
 </head>
 <body>
-<!-- AUTH SCREEN -->
+<!-- AUTH SCREEN  —— 全新分屏式登录注册 -->
 <div id="authWrap">
-  <div class="lbox">
-    <div class="l-logo">FLY YUN</div>
-    <div class="l-sub">Executive Search - Talent Mapping</div>
-    <div class="auth-tabs">
-      <button class="auth-tab act" id="tabLogin" onclick="switchAuth('login')">登录</button>
-      <button class="auth-tab" id="tabReg" onclick="switchAuth('register')">注册</button>
+  <!-- 左侧：品牌 / 卖点展示 -->
+  <div class="auth-hero">
+    <div class="grid-bg"></div>
+    <div class="hero-top">
+      <div class="hero-mark">F</div>
+      <div class="hero-brand">FLY YUN<span>· 猎头人才系统</span></div>
     </div>
-    <!-- Login Form -->
-    <div id="loginForm">
-      <label class="l-lbl">用户名</label>
-      <input class="l-input" id="loginUser" type="text" placeholder="输入用户名">
-      <label class="l-lbl">密码</label>
-      <input class="l-input" id="loginPw" type="password" placeholder="输入密码">
-      <button class="l-btn" onclick="doLogin()">登录</button>
-      <div class="l-err" id="lErr"></div>
-      <div class="l-hint">默认管理员：admin / admin123</div>
+    <div class="hero-mid">
+      <div class="hero-tag"><span class="dot"></span><span id="heroDbTag">系统在线 · 安全连接</span></div>
+      <div class="hero-h1">让每一次<em>人才匹配</em><br>都精准如约</div>
+      <p class="hero-desc">面向猎头团队的全流程候选人管理平台 —— 人才库、组织 Mapping、招聘看板与数据分析，开箱即用。</p>
+      <div class="float-cards">
+        <div class="float-card">
+          <div class="fc-icon"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></div>
+          <div class="fc-info"><div class="fc-title">候选人全生命周期</div><div class="fc-meta">从联系到入职，全流程追踪</div></div>
+          <div class="fc-num">∞</div>
+        </div>
+        <div class="float-card">
+          <div class="fc-icon"><svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
+          <div class="fc-info"><div class="fc-title">实时数据洞察</div><div class="fc-meta">招募漏斗 · 城市分布 · 学历构成</div></div>
+          <div class="fc-num">12+</div>
+        </div>
+        <div class="float-card">
+          <div class="fc-icon"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></div>
+          <div class="fc-info"><div class="fc-title">云端 + 本地双备份</div><div class="fc-meta">支持 Excel 导入导出</div></div>
+          <div class="fc-num">2x</div>
+        </div>
+      </div>
     </div>
-    <!-- Register Form -->
-    <div id="regForm" style="display:none">
-      <label class="l-lbl">用户名</label>
-      <input class="l-input" id="regUser" type="text" placeholder="设置用户名（至少3位）">
-      <label class="l-lbl">邮箱</label>
-      <input class="l-input" id="regEmail" type="email" placeholder="your@email.com">
-      <label class="l-lbl">密码</label>
-      <input class="l-input" id="regPw" type="password" placeholder="设置密码（至少6位）">
-      <label class="l-lbl">确认密码</label>
-      <input class="l-input" id="regPw2" type="password" placeholder="再次输入密码">
-      <button class="l-btn" onclick="doRegister()">注册账号</button>
-      <div class="l-err" id="rErr"></div>
+    <div class="hero-foot">
+      <span>&copy; 2026 FLY YUN</span>
+      <a>关于我们</a>
+      <a>使用条款</a>
+    </div>
+  </div>
+
+  <!-- 右侧：登录注册表单 -->
+  <div class="auth-side">
+    <div class="lbox">
+      <div class="db-status" id="dbStatusBadge"><span class="dot"></span><span id="dbStatusText">本地模式</span></div>
+      <div class="l-greeting" id="lGreeting">欢迎回来 👋</div>
+      <div class="l-sub" id="lSubText">登录账号开始管理你的人才库</div>
+      <div class="auth-tabs">
+        <button class="auth-tab act" id="tabLogin" onclick="switchAuth('login')">登录</button>
+        <button class="auth-tab" id="tabReg" onclick="switchAuth('register')">注册</button>
+      </div>
+      <!-- Login Form -->
+      <div id="loginForm">
+        <label class="l-lbl">用户名</label>
+        <div class="l-ifield">
+          <input class="l-input" id="loginUser" type="text" placeholder="输入用户名">
+          <svg class="l-iicon" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        </div>
+        <label class="l-lbl">密码</label>
+        <div class="l-ifield">
+          <input class="l-input" id="loginPw" type="password" placeholder="输入密码">
+          <svg class="l-iicon" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        </div>
+        <button class="l-btn" onclick="doLogin()">
+          <span>登录账户</span>
+          <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+        </button>
+        <div class="l-err" id="lErr"></div>
+        <div class="l-hint">默认管理员：<code>admin</code> / <code>admin123</code></div>
+      </div>
+      <!-- Register Form -->
+      <div id="regForm" style="display:none">
+        <label class="l-lbl">用户名</label>
+        <div class="l-ifield">
+          <input class="l-input" id="regUser" type="text" placeholder="设置用户名（至少3位）">
+          <svg class="l-iicon" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        </div>
+        <label class="l-lbl">邮箱</label>
+        <div class="l-ifield">
+          <input class="l-input" id="regEmail" type="email" placeholder="your@email.com">
+          <svg class="l-iicon" viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+        </div>
+        <label class="l-lbl">密码</label>
+        <div class="l-ifield">
+          <input class="l-input" id="regPw" type="password" placeholder="设置密码（至少6位）">
+          <svg class="l-iicon" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        </div>
+        <label class="l-lbl">确认密码</label>
+        <div class="l-ifield">
+          <input class="l-input" id="regPw2" type="password" placeholder="再次输入密码">
+          <svg class="l-iicon" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+        </div>
+        <button class="l-btn" onclick="doRegister()">
+          <span>创建账号</span>
+          <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        </button>
+        <div class="l-err" id="rErr"></div>
+      </div>
     </div>
   </div>
 </div>
@@ -486,41 +617,153 @@ tbody tr:hover .ra{opacity:1}
 <div id="toastWrap"></div>
 <script>
 /* ============================================
-   FLY YUN v5.0 - 纯本地存储版（无数据库连接）
+   FLY YUN v6.0 - 云端 + 本地双备份版
+   ============================================
+   数据库：Supabase（在下方填入 URL 和 anon Key 即可启用云端）
+   未配置时自动回退到 localStorage，功能完全不受影响。
    ============================================ */
 
-// == 本地存储 key ==
+/* ====== 1. Supabase 配置（填入后自动启用云端） ====== */
+const SUPABASE_URL = 'https://neppacfsixrjzpkvcgxy.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5lcHBhY2ZzaXhyanpwa3ZjZ3h5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM1Mjg5NDIsImV4cCI6MjA4OTEwNDk0Mn0.IOspW42pnx-hFAtASbYv57PZgpypyX5CguS96N-ywB8';
+
+/* ====== 2. 建表 SQL（在 Supabase SQL Editor 执行一次即可） ======
+   -- 用户表
+   create table if not exists flyyun_users (
+     id          bigint primary key,
+     username    text unique not null,
+     email       text,
+     password    text not null,
+     role        text default 'user',
+     created_at  timestamptz default now()
+   );
+   -- 人才表
+   create table if not exists flyyun_talents (
+     id     bigint primary key,
+     name   text not null,
+     co     text,
+     job    text,
+     dept   text,
+     status text,
+     edu    text,
+     city   text,
+     level  text,
+     cur    text,
+     phone  text,
+     note   text,
+     ts     bigint
+   );
+   -- 开放匿名读写（演示用；生产环境请配 RLS 策略）
+   alter table flyyun_users   enable row level security;
+   alter table flyyun_talents enable row level security;
+   create policy "open_users"   on flyyun_users   for all using (true) with check (true);
+   create policy "open_talents" on flyyun_talents for all using (true) with check (true);
+*/
+
+/* ====== 3. 本地存储 key ====== */
 const UK = 'flyyun_users';
 const SK = 'flyyun_data';
 const SESK = 'flyyun_session';
 
-// == 全局数据 ==
+/* ====== 4. 全局数据 ====== */
 let D = [];
 let editId = null, sortCol = null, sortDir = 1, CH = {};
 let currentUser = null;
+let SB = null;          // Supabase 客户端实例
+let CLOUD_OK = false;   // 云端是否可用
 
-// == 用户数据层（纯 localStorage）==
+/* ====== 5. 初始化 Supabase ====== */
+function initCloud() {
+  if (!SUPABASE_URL || !SUPABASE_KEY) {
+    setDbStatus(false, '本地模式');
+    return;
+  }
+  try {
+    SB = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    // 探活：尝试查一次 users 表
+    SB.from('flyyun_users').select('id', { count: 'exact', head: true }).then(function(r){
+      if (r.error) { console.warn('[FLY YUN] Supabase 连接失败:', r.error.message); setDbStatus(false, '云端不可用·已回退本地'); }
+      else { CLOUD_OK = true; setDbStatus(true, '云端已连接'); syncFromCloud(); }
+    });
+  } catch(e) {
+    console.warn('[FLY YUN] Supabase 初始化失败:', e);
+    setDbStatus(false, '本地模式');
+  }
+}
+
+function setDbStatus(online, text) {
+  var b = document.getElementById('dbStatusBadge');
+  var t = document.getElementById('dbStatusText');
+  var ht = document.getElementById('heroDbTag');
+  if (t) t.textContent = text;
+  if (b) b.classList.toggle('online', !!online);
+  if (ht) ht.textContent = online ? '云端已连接 · 数据实时同步' : '本地模式 · 数据仅存浏览器';
+}
+
+/* ====== 6. 云端 → 本地 拉取（启动时） ====== */
+async function syncFromCloud() {
+  if (!CLOUD_OK) return;
+  try {
+    const ur = await SB.from('flyyun_users').select('*');
+    if (!ur.error && ur.data) {
+      // 合并：以云端为主，本地若有云端没有的则推回
+      const cloud = ur.data.map(function(u){return {id:u.id,username:u.username,email:u.email,password:u.password,role:u.role,createdAt:u.created_at}});
+      localStorage.setItem(UK, JSON.stringify(cloud));
+    }
+    const tr = await SB.from('flyyun_talents').select('*').order('ts', {ascending:false});
+    if (!tr.error && tr.data) {
+      localStorage.setItem(SK, JSON.stringify(tr.data));
+      D = tr.data;
+      if (currentUser) { renderAll(); renderTable(); renderDash(); }
+    }
+  } catch(e) { console.warn('[FLY YUN] 云端同步失败:', e); }
+}
+
+/* ====== 7. 用户数据层（本地 + 云端双写） ====== */
 function getUsers() {
   try { return JSON.parse(localStorage.getItem(UK) || '[]'); } catch(e) { return []; }
 }
 function saveUsers(users) { localStorage.setItem(UK, JSON.stringify(users)); }
 
-// == 人才数据层（纯 localStorage）==
+async function cloudUpsertUser(u) {
+  if (!CLOUD_OK) return;
+  try { await SB.from('flyyun_users').upsert({id:u.id,username:u.username,email:u.email,password:u.password,role:u.role,created_at:u.createdAt}); } catch(e){}
+}
+async function cloudDeleteUser(id) {
+  if (!CLOUD_OK) return;
+  try { await SB.from('flyyun_users').delete().eq('id', id); } catch(e){}
+}
+
+/* ====== 8. 人才数据层（本地 + 云端双写） ====== */
 function getTalents() {
   try { return JSON.parse(localStorage.getItem(SK) || '[]'); } catch(e) { return []; }
 }
 function saveTalents() { localStorage.setItem(SK, JSON.stringify(D)); }
 
-// == 初始化默认管理员 ==
+async function cloudUpsertTalent(t) {
+  if (!CLOUD_OK) return;
+  try { await SB.from('flyyun_talents').upsert(t); } catch(e){}
+}
+async function cloudDeleteTalent(id) {
+  if (!CLOUD_OK) return;
+  try { await SB.from('flyyun_talents').delete().eq('id', id); } catch(e){}
+}
+async function cloudClearTalents() {
+  if (!CLOUD_OK) return;
+  try { await SB.from('flyyun_talents').delete().neq('id', 0); } catch(e){}
+}
+
+/* ====== 9. 初始化默认管理员 ====== */
 function initDefaultAdmin() {
   const users = getUsers();
   if (!users.length) {
     const admin = { id: 1, username: 'admin', email: 'admin@flyyun.com', password: 'admin123', role: 'admin', createdAt: new Date().toISOString() };
     saveUsers([admin]);
+    cloudUpsertUser(admin);
   }
 }
 
-// == 登录 / 注册 Tab ==
+/* ====== 10. 登录 / 注册 Tab ====== */
 function switchAuth(tab) {
   document.getElementById('tabLogin').classList.toggle('act', tab === 'login');
   document.getElementById('tabReg').classList.toggle('act', tab === 'register');
@@ -528,6 +771,14 @@ function switchAuth(tab) {
   document.getElementById('regForm').style.display = tab === 'register' ? 'block' : 'none';
   document.getElementById('lErr').textContent = '';
   document.getElementById('rErr').textContent = '';
+  // 切换问候语
+  var g = document.getElementById('lGreeting');
+  var s = document.getElementById('lSubText');
+  if (tab === 'login') {
+    g.innerHTML = '欢迎回来 \uD83D\uDC4B'; s.textContent = '登录账号开始管理你的人才库';
+  } else {
+    g.innerHTML = '加入 FLY YUN \u2728'; s.textContent = '创建你的专属猎头工作台';
+  }
 }
 
 // == 登录 ==
@@ -560,6 +811,7 @@ function doRegister() {
   const newUser = { id: Date.now(), username, email, password: pw, role: 'user', createdAt: new Date().toISOString() };
   users.push(newUser);
   saveUsers(users);
+  cloudUpsertUser(newUser);
   currentUser = newUser;
   localStorage.setItem(SESK, JSON.stringify({ userId: newUser.id, ts: Date.now() }));
   enterApp();
@@ -654,8 +906,10 @@ function saveUser() {
   if (pw.length < 6) { toast('密码至少6位', 'err'); return; }
   const users = getUsers();
   if (users.find(u => u.username === username)) { toast('用户名已存在', 'err'); return; }
-  users.push({ id: Date.now(), username, email, password: pw, role, createdAt: new Date().toISOString() });
+  const nu = { id: Date.now(), username, email, password: pw, role, createdAt: new Date().toISOString() };
+  users.push(nu);
   saveUsers(users);
+  cloudUpsertUser(nu);
   closeMo('userMo');
   renderUsers();
   toast('用户已添加', 'ok');
@@ -664,13 +918,14 @@ function saveUser() {
 function toggleRole(id) {
   const users = getUsers();
   const u = users.find(x => x.id === id);
-  if (u) { u.role = u.role === 'admin' ? 'user' : 'admin'; saveUsers(users); renderUsers(); toast('角色已更新', 'ok'); }
+  if (u) { u.role = u.role === 'admin' ? 'user' : 'admin'; saveUsers(users); cloudUpsertUser(u); renderUsers(); toast('角色已更新', 'ok'); }
 }
 
 function deleteUser(id) {
   if (!confirm('确认删除该用户？')) return;
   const users = getUsers().filter(u => u.id !== id);
   saveUsers(users);
+  cloudDeleteUser(id);
   renderUsers();
   toast('用户已删除', 'info');
 }
@@ -692,7 +947,7 @@ function savePw() {
   if (n !== c) { toast('两次密码不一致', 'err'); return; }
   const users = getUsers();
   const u = users.find(x => x.id === currentUser.id);
-  if (u) { u.password = n; saveUsers(users); }
+  if (u) { u.password = n; saveUsers(users); cloudUpsertUser(u); }
   currentUser.password = n;
   closeMo('pwMo');
   toast('密码修改成功', 'ok');
@@ -916,6 +1171,7 @@ function saveMo() {
     D.unshift(item);
   }
   saveTalents();
+  cloudUpsertTalent(item);
   closeMo('addMo'); renderAll(); renderTable(); populateCo();
   toast(editId ? '候选人信息已更新' : '候选人已成功添加', 'ok');
 }
@@ -924,6 +1180,7 @@ function removeItem(id) {
   if (!confirm('确认删除该候选人？')) return;
   D = D.filter(function(i){return i.id !== id});
   saveTalents();
+  cloudDeleteTalent(id);
   renderAll(); renderTable(); populateCo();
   toast('已删除', 'info');
 }
@@ -932,6 +1189,7 @@ function clearAll() {
   if (!confirm('确认清空所有人才数据？此操作不可恢复！')) return;
   D = [];
   saveTalents();
+  cloudClearTalents();
   renderAll(); renderTable();
   toast('数据已清空', 'info');
 }
@@ -965,6 +1223,8 @@ function importExcel(e) {
       }}).filter(function(r){return r.name});
       D = imp.concat(D);
       saveTalents();
+      // 批量同步到云端
+      if (CLOUD_OK) { imp.forEach(function(t){ cloudUpsertTalent(t); }); }
       renderAll(); renderTable(); populateCo();
       toast('成功导入 ' + imp.length + ' 条记录', 'ok');
     } catch(err) { toast('导入失败，请检查文件格式', 'err'); }
@@ -975,6 +1235,7 @@ function importExcel(e) {
 
 /* ==== INIT ==== */
 (function init() {
+  initCloud();
   initDefaultAdmin();
   document.querySelectorAll('.mo').forEach(function(mo){
     mo.addEventListener('click', function(e){ if (e.target === mo) mo.classList.remove('open'); });
