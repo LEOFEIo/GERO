@@ -3,6 +3,8 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<meta http-equiv="X-Content-Type-Options" content="nosniff"/>
 <title>FLY YUN · 猎头人才系统</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&display=swap" rel="stylesheet">
@@ -982,12 +984,17 @@ function renderDash() {
     {l:'面试中',v:inter,acc:'linear-gradient(90deg,#d97706,#f59e0b)',ibg:'rgba(217,119,6,.08)',ic:'var(--amber)',icon:'M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01'},
   ];
   document.getElementById('statsRow').innerHTML = statsData.map(function(s){
-    return '<div class="sc" style="--acc:'+s.acc+';--ibg:'+s.ibg+';--ic:'+s.ic+'"><div class="sc-icon"><svg viewBox="0 0 24 24"><path d="'+s.icon+'"/></svg></div><div class="sc-lbl">'+s.l+'</div><div class="sc-num">'+s.v+'</div></div>';
+    return '<div class="sc" style="--acc:'+s.acc+';--ibg:'+s.ibg+';--ic:'+s.ic+'"><div class="sc-icon"><svg viewBox="0 0 24 24"><path d="'+s.icon+'"/></svg></div><div class="sc-lbl">'+s.l+'</div><div class="sc-num" data-target="'+s.v+'">'+s.v+'</div></div>';
   }).join('');
+  // 数字动画
+  document.querySelectorAll('.sc-num[data-target]').forEach(function(el){
+    animateNumber(el, parseInt(el.getAttribute('data-target')) || 0);
+  });
 
   var recent = D.slice(0, 5);
   document.getElementById('actFeed').innerHTML = recent.length ? recent.map(function(i){
-    return '<div class="aitem"><div class="adot" style="background:rgba(37,99,235,.08)"><svg viewBox="0 0 24 24" style="stroke:var(--blue)"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div><div><div class="atit"><b>'+i.name+'</b> 已录入</div><div class="ameta">'+(i.co||'')+' \u00B7 '+(i.job||'')+' \u00B7 <span class="badge b-'+i.status+'">'+i.status+'</span></div></div></div>';
+    var tip = getSmartTip(i);
+    return '<div class="aitem"><div class="adot" style="background:rgba(37,99,235,.08)"><svg viewBox="0 0 24 24" style="stroke:var(--blue)"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div><div><div class="atit"><b>'+i.name+'</b> 已录入</div><div class="ameta">'+(i.co||'')+' \u00B7 '+(i.job||'')+' \u00B7 <span class="badge b-'+i.status+'">'+i.status+'</span></div>'+(tip?'<div style="font-size:11px;color:var(--blue);margin-top:4px;opacity:.8">\u{1F4A1} '+tip+'</div>':'')+'</div></div>';
   }).join('') : '<div style="color:var(--sub);font-size:13px;padding:16px 0">暂无活动记录</div>';
 
   var statuses = ['正在联系中','合适','已面试','入职','不合适'];
@@ -1042,7 +1049,7 @@ function renderTable() {
   if (!tb) return;
   if (!f.length) { tb.innerHTML = '<tr><td colspan="9"><div class="empty"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><h3>无匹配候选人</h3><p>调整搜索条件</p></div></td></tr>'; return; }
   tb.innerHTML = f.map(function(i){
-    return '<tr><td><div style="font-weight:600">'+i.name+'</div>'+(i.cur?'<div style="font-size:11px;color:var(--sub);margin-top:2px">来自：'+i.cur+'</div>':'')+'</td><td>'+(i.co||'-')+'</td><td>'+(i.job||'-')+'</td><td style="color:var(--sub);font-size:13px">'+(i.dept||'-')+'</td><td><span class="badge b-'+i.status+'">'+i.status+'</span></td><td>'+(i.edu||'-')+'</td><td>'+(i.city||'-')+'</td><td style="color:var(--blue);font-size:13px">'+(i.level||'-')+'</td><td><div class="ra"><button class="btn btn-ghost btn-sm" onclick="openEdit('+i.id+')">编辑</button><button class="btn btn-r btn-sm" onclick="removeItem('+i.id+')">删除</button></div></td></tr>';
+    return '<tr><td><div style="font-weight:600">'+i.name+'</div>'+(i.cur?'<div style="font-size:11px;color:var(--sub);margin-top:2px">来自：'+i.cur+'</div>':'')+'</td><td>'+(i.co||'-')+'</td><td>'+(i.job||'-')+'</td><td style="color:var(--sub);font-size:13px">'+(i.dept||'-')+'</td><td><span class="badge b-'+i.status+'">'+i.status+'</span></td><td>'+(i.edu||'-')+'</td><td>'+(i.city||'-')+'</td><td style="color:var(--blue);font-size:13px">'+(i.level||'-')+'</td><td><div class="ra"><button class="btn btn-ghost btn-sm" onclick="copyTalentInfo('+i.id+')" title="复制信息">&#128203;</button><button class="btn btn-ghost btn-sm" onclick="openEdit('+i.id+')">编辑</button><button class="btn btn-r btn-sm" onclick="removeItem('+i.id+')">删除</button></div></td></tr>';
   }).join('');
 }
 
@@ -1233,6 +1240,98 @@ function importExcel(e) {
   e.target.value = '';
 }
 
+/* ==== SMART FEATURES ==== */
+
+// AI 智能提示：根据候选人状态推荐下一步
+function getSmartTip(item) {
+  var tips = {
+    '正在联系中': '建议：48小时内跟进，发送岗位介绍资料',
+    '合适': '建议：尽快安排面试，避免被竞对抢先',
+    '已面试': '建议：3天内给出面试反馈，保持候选人热度',
+    '入职': '恭喜！建议：跟进入职适应情况，维护长期关系',
+    '不合适': '建议：礼貌告知结果，存入人才池待后续匹配',
+    '待定': '建议：明确待定原因，设置提醒 3 天后复评',
+    '拒绝': '建议：记录拒绝原因，半年后可再次触达'
+  };
+  return tips[item.status] || '';
+}
+
+// 一键复制候选人信息
+function copyTalentInfo(id) {
+  var item = D.find(function(i){ return i.id === id; });
+  if (!item) return;
+  var text = [
+    '姓名：' + item.name,
+    '公司：' + (item.co || '-'),
+    '岗位：' + (item.job || '-'),
+    '部门：' + (item.dept || '-'),
+    '状态：' + item.status,
+    '学历：' + (item.edu || '-'),
+    '城市：' + (item.city || '-'),
+    '职级：' + (item.level || '-'),
+    '当前公司：' + (item.cur || '-'),
+    '电话：' + (item.phone || '-'),
+    '备注：' + (item.note || '-')
+  ].join('\n');
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(text).then(function(){ toast('已复制到剪贴板', 'ok'); });
+  } else {
+    var ta = document.createElement('textarea');
+    ta.value = text; document.body.appendChild(ta); ta.select();
+    document.execCommand('copy'); document.body.removeChild(ta);
+    toast('已复制到剪贴板', 'ok');
+  }
+}
+
+// 快速状态更新（直接在表格中切换）
+function quickStatus(id, newStatus) {
+  var idx = D.findIndex(function(i){ return i.id === id; });
+  if (idx < 0) return;
+  D[idx].status = newStatus;
+  D[idx].ts = Date.now();
+  saveTalents();
+  cloudUpsertTalent(D[idx]);
+  renderTable();
+  toast(D[idx].name + ' → ' + newStatus, 'ok');
+}
+
+// 数字动画
+function animateNumber(el, target) {
+  var start = 0, duration = 600, startTime = null;
+  function step(ts) {
+    if (!startTime) startTime = ts;
+    var p = Math.min((ts - startTime) / duration, 1);
+    el.textContent = Math.floor(p * target);
+    if (p < 1) requestAnimationFrame(step);
+    else el.textContent = target;
+  }
+  requestAnimationFrame(step);
+}
+
+// 本周新增统计
+function getWeeklyStats() {
+  var now = Date.now();
+  var weekAgo = now - 7 * 24 * 3600 * 1000;
+  return D.filter(function(i){ return i.ts && i.ts > weekAgo; }).length;
+}
+
+// 智能搜索建议
+function getSearchSuggestions(kw) {
+  if (!kw || kw.length < 1) return [];
+  kw = kw.toLowerCase();
+  var results = [];
+  var seen = {};
+  D.forEach(function(i){
+    [i.name, i.co, i.job, i.city].forEach(function(v){
+      if (v && v.toLowerCase().indexOf(kw) >= 0 && !seen[v]) {
+        seen[v] = 1;
+        results.push(v);
+      }
+    });
+  });
+  return results.slice(0, 5);
+}
+
 /* ==== INIT ==== */
 (function init() {
   initCloud();
@@ -1242,6 +1341,23 @@ function importExcel(e) {
   });
   document.getElementById('loginPw').addEventListener('keydown', function(e){ if (e.key === 'Enter') doLogin(); });
   document.getElementById('loginUser').addEventListener('keydown', function(e){ if (e.key === 'Enter') doLogin(); });
+
+  // 全局快捷键: Ctrl+K 聚焦搜索
+  document.addEventListener('keydown', function(e){
+    if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+      e.preventDefault();
+      var si = document.getElementById('siSearch');
+      if (si && document.getElementById('app').style.display === 'block') {
+        switchPg('talent', document.querySelector('[data-pg="talent"]'));
+        setTimeout(function(){ si.focus(); }, 100);
+      }
+    }
+    // Esc 关闭所有弹窗
+    if (e.key === 'Escape') {
+      document.querySelectorAll('.mo.open').forEach(function(m){ m.classList.remove('open'); });
+    }
+  });
+
   checkSession();
 })();
 </script>
