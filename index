@@ -1,0 +1,988 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>FLY YUN · 猎头人才系统</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#f8fafc;--surface:#ffffff;--card:#ffffff;--card2:#f1f5f9;
+  --border:rgba(0,0,0,0.08);--border2:rgba(0,0,0,0.12);
+  --text:#1e293b;--sub:#64748b;--muted:#94a3b8;
+  --blue:#2563eb;--blue2:#3b82f6;--purple:#7c3aed;
+  --green:#059669;--red:#dc2626;--amber:#d97706;--cyan:#0891b2;
+  --f-display:'Syne',sans-serif;--f-body:'DM Sans',sans-serif;
+}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f-body);font-size:14px;overflow-x:hidden}
+
+/* LOGIN / REGISTER */
+#authWrap{position:fixed;inset:0;z-index:999;display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(135deg,#e0e7ff 0%,#f8fafc 50%,#ede9fe 100%)}
+.lbox{width:420px;background:#fff;border:1px solid var(--border2);border-radius:24px;
+  padding:42px 38px;box-shadow:0 20px 60px rgba(0,0,0,0.08);position:relative}
+.l-logo{font-family:var(--f-display);font-size:34px;font-weight:800;letter-spacing:-1.5px;
+  background:linear-gradient(135deg,#1e293b 20%,#2563eb 80%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:4px}
+.l-sub{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--sub);margin-bottom:32px}
+.l-lbl{display:block;font-size:11px;font-weight:600;color:var(--sub);letter-spacing:.07em;text-transform:uppercase;margin-bottom:8px;margin-top:16px}
+.l-input{width:100%;height:48px;padding:0 16px;background:#f8fafc;
+  border:1px solid var(--border2);border-radius:12px;color:var(--text);
+  font-family:var(--f-body);font-size:15px;outline:none;transition:.2s}
+.l-input:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(37,99,235,.12)}
+.l-input::placeholder{color:var(--muted);font-size:14px}
+.l-btn{width:100%;height:48px;margin-top:22px;border:none;border-radius:12px;
+  background:linear-gradient(135deg,#2563eb,#7c3aed);color:#fff;
+  font-family:var(--f-display);font-size:15px;font-weight:700;cursor:pointer;transition:.2s}
+.l-btn:hover{transform:translateY(-2px);box-shadow:0 10px 25px rgba(37,99,235,.25)}
+.l-btn:active{transform:translateY(0)}
+.l-err{min-height:18px;font-size:12px;color:var(--red);text-align:center;margin-top:10px;transition:.2s}
+.l-hint{margin-top:16px;font-size:12px;color:var(--sub);text-align:center}
+.l-hint a{color:var(--blue);cursor:pointer;text-decoration:none;font-weight:600}
+.l-hint a:hover{text-decoration:underline}
+.auth-tabs{display:flex;gap:0;margin-bottom:24px;border-radius:10px;overflow:hidden;border:1px solid var(--border2)}
+.auth-tab{flex:1;height:38px;border:none;background:#f8fafc;color:var(--sub);font-family:var(--f-body);font-size:13px;font-weight:600;cursor:pointer;transition:.2s}
+.auth-tab.act{background:var(--blue);color:#fff}
+
+/* APP SHELL */
+#app{display:none;position:relative;z-index:2;min-height:100vh}
+
+/* TOPBAR */
+.topbar{position:sticky;top:0;z-index:200;height:62px;
+  background:rgba(255,255,255,.92);backdrop-filter:blur(20px);
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;padding:0 36px}
+.t-logo{font-family:var(--f-display);font-size:20px;font-weight:800;letter-spacing:-0.5px;
+  background:linear-gradient(135deg,#1e293b 20%,#2563eb 80%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.t-nav{display:flex;gap:2px}
+.tnav{height:34px;padding:0 14px;border:none;border-radius:9px;
+  background:transparent;color:var(--sub);font-family:var(--f-body);font-size:13px;
+  cursor:pointer;transition:.18s;display:flex;align-items:center;gap:6px;white-space:nowrap}
+.tnav:hover{background:rgba(37,99,235,.06);color:var(--text)}
+.tnav.act{background:rgba(37,99,235,.1);color:var(--blue)}
+.tnav svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;flex-shrink:0}
+.t-right{display:flex;align-items:center;gap:10px}
+.t-badge{height:34px;padding:0 12px;border-radius:99px;background:#f1f5f9;
+  border:1px solid var(--border);font-size:12px;display:flex;align-items:center;gap:8px}
+.t-av{width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,#2563eb,#7c3aed);
+  display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff;
+  font-family:var(--f-display)}
+.t-logout{height:34px;padding:0 13px;border-radius:9px;border:1px solid var(--border);
+  background:transparent;color:var(--sub);font-size:12px;cursor:pointer;transition:.18s}
+.t-logout:hover{background:rgba(220,38,38,.06);border-color:rgba(220,38,38,.2);color:var(--red)}
+
+/* PAGES */
+.page{display:none;padding:34px 36px;max-width:1580px;margin:0 auto;animation:fadeIn .25s ease}
+.page.act{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+
+/* PAGE HEADER */
+.ph{display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:14px;margin-bottom:28px}
+.ph-l h1{font-family:var(--f-display);font-size:26px;font-weight:800;letter-spacing:-.5px}
+.ph-l p{font-size:13px;color:var(--sub);margin-top:3px}
+.ph-r{display:flex;gap:9px;flex-wrap:wrap}
+
+/* STAT CARDS */
+.stats-row{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-bottom:26px}
+.sc{background:var(--card);border:1px solid var(--border);border-radius:16px;
+  padding:20px 22px;position:relative;overflow:hidden;transition:.2s;cursor:default;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+.sc:hover{border-color:var(--border2);transform:translateY(-2px);box-shadow:0 8px 25px rgba(0,0,0,.06)}
+.sc::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;
+  background:var(--acc,linear-gradient(90deg,#2563eb,#7c3aed))}
+.sc-icon{width:36px;height:36px;border-radius:10px;background:var(--ibg,rgba(37,99,235,.08));
+  display:flex;align-items:center;justify-content:center;margin-bottom:14px}
+.sc-icon svg{width:16px;height:16px;stroke:var(--ic,var(--blue));fill:none;stroke-width:2}
+.sc-lbl{font-size:11px;font-weight:600;color:var(--sub);letter-spacing:.06em;text-transform:uppercase}
+.sc-num{font-family:var(--f-display);font-size:30px;font-weight:800;letter-spacing:-1px;margin-top:5px}
+
+/* CARD */
+.card{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:24px;margin-bottom:20px;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+.ct{font-family:var(--f-display);font-size:14px;font-weight:700;
+  display:flex;align-items:center;gap:7px;margin-bottom:18px}
+.ct svg{width:15px;height:15px;stroke:var(--blue);fill:none;stroke-width:2;opacity:.8}
+
+/* BUTTONS */
+.btn{height:42px;padding:0 18px;border:none;border-radius:11px;
+  font-family:var(--f-body);font-size:13px;font-weight:600;
+  cursor:pointer;transition:.18s;display:inline-flex;align-items:center;gap:6px}
+.btn:hover{transform:translateY(-1px)}
+.btn:active{transform:scale(.98)}
+.btn svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2}
+.btn-p{background:linear-gradient(135deg,#2563eb,#7c3aed);color:#fff}
+.btn-p:hover{box-shadow:0 8px 22px rgba(37,99,235,.25)}
+.btn-g{background:linear-gradient(135deg,#059669,#10b981);color:#fff}
+.btn-g:hover{box-shadow:0 8px 22px rgba(5,150,105,.2)}
+.btn-r{background:linear-gradient(135deg,#dc2626,#ef4444);color:#fff}
+.btn-ghost{background:#f1f5f9;border:1px solid var(--border);color:var(--text)}
+.btn-ghost:hover{background:#e2e8f0}
+.btn-sm{height:34px;padding:0 12px;font-size:12px;border-radius:9px}
+
+/* FORM */
+.fld{display:flex;flex-direction:column;gap:6px}
+.fld label{font-size:11px;font-weight:600;color:var(--sub);letter-spacing:.07em;text-transform:uppercase}
+.fld label .req{color:var(--red);margin-left:1px}
+.fld input,.fld select,.fld textarea{
+  padding:0 13px;height:44px;background:#f8fafc;
+  border:1px solid var(--border);border-radius:10px;color:var(--text);
+  font-family:var(--f-body);font-size:14px;outline:none;transition:.18s}
+.fld textarea{height:76px;padding:11px 13px;resize:none;line-height:1.55}
+.fld input:focus,.fld select:focus,.fld textarea:focus{
+  border-color:var(--blue);background:#fff;box-shadow:0 0 0 3px rgba(37,99,235,.1)}
+.fld input::placeholder,.fld textarea::placeholder{color:var(--muted);font-size:13px}
+option{background:#fff}
+.fld select{-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:34px}
+.frow{display:flex;gap:9px;flex-wrap:wrap;margin-top:20px;padding-top:20px;border-top:1px solid var(--border)}
+
+/* SEARCH */
+.sbar{display:flex;gap:10px;align-items:center;margin-bottom:18px;flex-wrap:wrap}
+.sw{flex:1;min-width:180px;position:relative}
+.sw svg{position:absolute;left:12px;top:50%;transform:translateY(-50%);width:14px;height:14px;stroke:var(--sub);fill:none;stroke-width:2}
+.si{width:100%;height:42px;padding:0 13px 0 37px;background:#f8fafc;
+  border:1px solid var(--border);border-radius:11px;color:var(--text);
+  font-family:var(--f-body);font-size:14px;outline:none;transition:.18s}
+.si:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(37,99,235,.1)}
+.sf{height:42px;padding:0 32px 0 13px;background:#f8fafc;
+  border:1px solid var(--border);border-radius:11px;color:var(--text);
+  font-family:var(--f-body);font-size:13px;outline:none;-webkit-appearance:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='11' height='11' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 10px center;transition:.18s}
+.sf:focus{border-color:var(--blue)}
+.rcnt{font-size:12px;color:var(--sub);white-space:nowrap}
+
+/* TABLE */
+.tw{overflow-x:auto;border-radius:12px;border:1px solid var(--border)}
+table{width:100%;min-width:900px;border-collapse:collapse}
+thead{background:#f8fafc}
+th{padding:13px 16px;font-size:11px;font-weight:600;color:var(--sub);
+  letter-spacing:.06em;text-transform:uppercase;white-space:nowrap;
+  border-bottom:1px solid var(--border);cursor:pointer;user-select:none;transition:.15s}
+th:hover{color:var(--text)}
+td{padding:14px 16px;border-bottom:1px solid var(--border);vertical-align:middle;transition:.12s}
+tr:last-child td{border-bottom:none}
+tbody tr{transition:.12s}
+tbody tr:hover td{background:#f8fafc}
+.ra{display:flex;gap:6px;opacity:0;transition:.15s}
+tbody tr:hover .ra{opacity:1}
+
+/* BADGE */
+.badge{padding:4px 10px;border-radius:99px;font-size:11px;font-weight:700;white-space:nowrap}
+.b-正在联系中{background:rgba(37,99,235,.08);color:#2563eb;border:1px solid rgba(37,99,235,.2)}
+.b-合适{background:rgba(5,150,105,.08);color:#059669;border:1px solid rgba(5,150,105,.2)}
+.b-不合适{background:rgba(220,38,38,.08);color:#dc2626;border:1px solid rgba(220,38,38,.2)}
+.b-已面试{background:rgba(124,58,237,.08);color:#7c3aed;border:1px solid rgba(124,58,237,.2)}
+.b-入职{background:rgba(22,163,74,.08);color:#16a34a;border:1px solid rgba(22,163,74,.2)}
+.b-待定{background:rgba(217,119,6,.08);color:#d97706;border:1px solid rgba(217,119,6,.2)}
+.b-拒绝{background:rgba(220,38,38,.08);color:#dc2626;border:1px solid rgba(220,38,38,.2)}
+
+/* CHARTS */
+.cg2{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-bottom:20px}
+.cg2-2{display:grid;grid-template-columns:repeat(2,1fr);gap:18px;margin-bottom:20px}
+.chbox{height:270px}
+
+/* MAPPING */
+.mmap{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:16px}
+.mc{background:var(--card);border:1px solid var(--border);border-radius:16px;overflow:hidden;transition:.2s;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+.mc:hover{border-color:var(--border2);transform:translateY(-2px);box-shadow:0 8px 25px rgba(0,0,0,.06)}
+.mch{padding:16px 18px 13px;border-bottom:1px solid var(--border);background:#f8fafc;
+  display:flex;align-items:center;justify-content:space-between}
+.mch-t{font-family:var(--f-display);font-size:13px;font-weight:700}
+.mch-c{background:rgba(37,99,235,.08);color:var(--blue);font-size:10px;font-weight:700;padding:3px 9px;border-radius:99px}
+.pr{padding:12px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:11px;transition:.12s;cursor:default}
+.pr:last-child{border:none}
+.pr:hover{background:#f8fafc}
+.pav{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-size:11px;font-weight:700;font-family:var(--f-display);flex-shrink:0;
+  background:linear-gradient(135deg,#2563eb,#7c3aed);color:#fff}
+.pi{flex:1;min-width:0}
+.pn{font-weight:600;font-size:13px}
+.pm{font-size:11px;color:var(--sub);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* KANBAN */
+.kb{display:grid;grid-template-columns:repeat(6,1fr);gap:14px;overflow-x:auto}
+.kc{background:#f8fafc;border:1px solid var(--border);border-radius:14px;padding:14px;min-height:280px}
+.kch{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--sub);margin-bottom:12px;display:flex;align-items:center;justify-content:space-between}
+.kcc{background:rgba(37,99,235,.08);font-size:10px;padding:2px 7px;border-radius:99px;color:var(--blue)}
+.kcard{background:#fff;border:1px solid var(--border);border-radius:10px;
+  padding:13px;margin-bottom:9px;transition:.12s;cursor:default;box-shadow:0 1px 2px rgba(0,0,0,.04)}
+.kcard:hover{border-color:var(--border2);transform:translateX(2px)}
+.kn{font-weight:600;font-size:12px;margin-bottom:5px}
+.km{font-size:11px;color:var(--sub)}
+.kcmp{font-size:10px;color:var(--blue);margin-top:3px}
+
+/* PROGRESS BAR */
+.pb{height:4px;background:rgba(0,0,0,.06);border-radius:99px;overflow:hidden;margin-top:7px}
+.pf{height:100%;border-radius:99px;transition:.5s}
+
+/* MODAL */
+.mo{position:fixed;inset:0;z-index:800;background:rgba(0,0,0,.3);
+  backdrop-filter:blur(6px);display:none;align-items:center;justify-content:center}
+.mo.open{display:flex}
+.mb{background:#fff;border:1px solid var(--border2);border-radius:20px;
+  padding:34px;width:520px;max-width:92vw;max-height:88vh;overflow-y:auto;
+  box-shadow:0 20px 60px rgba(0,0,0,.12);animation:mIn .2s ease}
+@keyframes mIn{from{opacity:0;transform:scale(.95) translateY(8px)}to{opacity:1;transform:scale(1) translateY(0)}}
+.mt{font-family:var(--f-display);font-size:19px;font-weight:800;
+  display:flex;align-items:center;justify-content:space-between;margin-bottom:22px}
+.mclose{background:#f1f5f9;border:none;width:30px;height:30px;
+  border-radius:99px;color:var(--sub);cursor:pointer;font-size:15px;transition:.18s}
+.mclose:hover{background:rgba(220,38,38,.1);color:var(--red)}
+
+/* SETTINGS */
+.sg{display:grid;grid-template-columns:repeat(2,1fr);gap:18px}
+.srow{display:flex;align-items:center;justify-content:space-between;
+  padding:15px 0;border-bottom:1px solid var(--border)}
+.srow:last-child{border:none}
+.si2 h4{font-size:14px;font-weight:500}
+.si2 p{font-size:12px;color:var(--sub);margin-top:2px}
+.tog{width:40px;height:22px;border-radius:99px;border:none;cursor:pointer;
+  transition:.2s;position:relative;background:var(--muted)}
+.tog.on{background:var(--blue)}
+.tog::after{content:'';position:absolute;width:16px;height:16px;border-radius:50%;
+  background:#fff;top:3px;left:3px;transition:.2s}
+.tog.on::after{left:21px}
+
+/* ACTIVITY */
+.aitem{display:flex;align-items:flex-start;gap:12px;padding:13px 0;border-bottom:1px solid var(--border)}
+.aitem:last-child{border:none}
+.adot{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+.adot svg{width:13px;height:13px;fill:none;stroke-width:2}
+.atit{font-size:13px;font-weight:500}
+.ameta{font-size:11px;color:var(--sub);margin-top:2px}
+
+/* EMPTY */
+.empty{padding:50px 20px;text-align:center;color:var(--sub)}
+.empty svg{width:42px;height:42px;stroke:var(--muted);fill:none;stroke-width:1.5;margin:0 auto 13px;display:block}
+.empty h3{font-size:15px;font-weight:600;color:var(--text);margin-bottom:7px}
+.empty p{font-size:12px}
+
+/* TOAST */
+#toastWrap{position:fixed;bottom:24px;right:24px;z-index:9999;display:flex;flex-direction:column;gap:8px;pointer-events:none}
+.titem{background:#fff;border:1px solid var(--border2);border-radius:12px;
+  padding:13px 16px;display:flex;align-items:center;gap:9px;
+  font-size:13px;font-weight:500;min-width:220px;pointer-events:auto;
+  box-shadow:0 10px 30px rgba(0,0,0,.1);animation:tIn .22s ease}
+@keyframes tIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.titem.ok .tic{color:var(--green)}
+.titem.err .tic{color:var(--red)}
+.titem.info .tic{color:var(--blue)}
+
+/* USER MANAGEMENT TABLE */
+.user-role{padding:3px 8px;border-radius:99px;font-size:11px;font-weight:600}
+.role-admin{background:rgba(124,58,237,.08);color:#7c3aed;border:1px solid rgba(124,58,237,.2)}
+.role-user{background:rgba(37,99,235,.08);color:#2563eb;border:1px solid rgba(37,99,235,.2)}
+
+/* RESPONSIVE */
+@media(max-width:1200px){.stats-row{grid-template-columns:repeat(3,1fr)}.cg2{grid-template-columns:repeat(2,1fr)}.kb{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:900px){.t-nav{display:none}}
+@media(max-width:768px){.page{padding:18px}.stats-row{grid-template-columns:repeat(2,1fr)}.cg2,.cg2-2{grid-template-columns:1fr}.sg{grid-template-columns:1fr}.kb{grid-template-columns:repeat(2,1fr)}}
+</style>
+</head>
+<body>
+<!-- AUTH SCREEN -->
+<div id="authWrap">
+  <div class="lbox">
+    <div class="l-logo">FLY YUN</div>
+    <div class="l-sub">Executive Search - Talent Mapping</div>
+    <div class="auth-tabs">
+      <button class="auth-tab act" id="tabLogin" onclick="switchAuth('login')">登录</button>
+      <button class="auth-tab" id="tabReg" onclick="switchAuth('register')">注册</button>
+    </div>
+    <!-- Login Form -->
+    <div id="loginForm">
+      <label class="l-lbl">用户名</label>
+      <input class="l-input" id="loginUser" type="text" placeholder="输入用户名">
+      <label class="l-lbl">密码</label>
+      <input class="l-input" id="loginPw" type="password" placeholder="输入密码">
+      <button class="l-btn" onclick="doLogin()">登录</button>
+      <div class="l-err" id="lErr"></div>
+      <div class="l-hint">默认管理员：admin / admin123</div>
+    </div>
+    <!-- Register Form -->
+    <div id="regForm" style="display:none">
+      <label class="l-lbl">用户名</label>
+      <input class="l-input" id="regUser" type="text" placeholder="设置用户名（至少3位）">
+      <label class="l-lbl">邮箱</label>
+      <input class="l-input" id="regEmail" type="email" placeholder="your@email.com">
+      <label class="l-lbl">密码</label>
+      <input class="l-input" id="regPw" type="password" placeholder="设置密码（至少6位）">
+      <label class="l-lbl">确认密码</label>
+      <input class="l-input" id="regPw2" type="password" placeholder="再次输入密码">
+      <button class="l-btn" onclick="doRegister()">注册账号</button>
+      <div class="l-err" id="rErr"></div>
+    </div>
+  </div>
+</div>
+<!-- APP -->
+<div id="app">
+  <div class="topbar">
+    <div class="t-logo">FLY YUN</div>
+    <div class="t-nav">
+      <button class="tnav act" data-pg="dash" onclick="switchPg('dash',this)"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>概览</button>
+      <button class="tnav" data-pg="talent" onclick="switchPg('talent',this)"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>人才库</button>
+      <button class="tnav" data-pg="mapping" onclick="switchPg('mapping',this)"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/></svg>Mapping</button>
+      <button class="tnav" data-pg="kanban" onclick="switchPg('kanban',this)"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="5" height="18"/><rect x="10" y="3" width="5" height="12"/><rect x="17" y="3" width="5" height="15"/></svg>看板</button>
+      <button class="tnav" data-pg="analytics" onclick="switchPg('analytics',this)"><svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>分析</button>
+      <button class="tnav" data-pg="users" onclick="switchPg('users',this)" id="navUsers" style="display:none"><svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><path d="M20 8v6M23 11h-6"/></svg>用户管理</button>
+      <button class="tnav" data-pg="settings" onclick="switchPg('settings',this)"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>设置</button>
+    </div>
+    <div class="t-right">
+      <div class="t-badge"><div class="t-av" id="topAv">A</div><span id="topName">Admin</span></div>
+      <button class="t-logout" onclick="doLogout()">退出登录</button>
+    </div>
+  </div>
+
+  <!-- DASHBOARD -->
+  <div class="page act" id="pg-dash">
+    <div class="ph"><div class="ph-l"><h1>今日概览</h1><p id="dashDate"></p></div>
+      <div class="ph-r"><button class="btn btn-p" onclick="openAdd()"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>添加候选人</button></div>
+    </div>
+    <div class="stats-row" id="statsRow"></div>
+    <div style="display:grid;grid-template-columns:1.7fr 1fr;gap:18px;margin-bottom:20px">
+      <div class="card"><div class="ct"><svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>最近录入</div><div id="actFeed"></div></div>
+      <div class="card"><div class="ct"><svg viewBox="0 0 24 24"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg>进展分布</div><div id="qstats"></div></div>
+    </div>
+    <div class="cg2">
+      <div class="card chbox"><div class="ct" style="margin-bottom:8px">状态分布</div><canvas id="cStatus"></canvas></div>
+      <div class="card chbox"><div class="ct" style="margin-bottom:8px">学历构成</div><canvas id="cEdu"></canvas></div>
+      <div class="card chbox"><div class="ct" style="margin-bottom:8px">客户公司</div><canvas id="cCo"></canvas></div>
+    </div>
+  </div>
+
+  <!-- TALENT -->
+  <div class="page" id="pg-talent">
+    <div class="ph"><div class="ph-l"><h1>人才库</h1><p>管理所有候选人信息</p></div>
+      <div class="ph-r">
+        <button class="btn btn-g" onclick="exportExcel()"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>导出 Excel</button>
+        <button class="btn btn-p" onclick="openAdd()"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>添加候选人</button>
+      </div>
+    </div>
+    <div class="card" style="padding:18px 22px">
+      <div class="sbar">
+        <div class="sw"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><input class="si" id="siSearch" placeholder="搜索姓名、公司、岗位、城市..." oninput="renderTable()"></div>
+        <select class="sf" id="sfStatus" onchange="renderTable()"><option value="">全部状态</option><option>正在联系中</option><option>合适</option><option>不合适</option><option>已面试</option><option>入职</option><option>待定</option><option>拒绝</option></select>
+        <select class="sf" id="sfEdu" onchange="renderTable()"><option value="">全部学历</option><option>本科</option><option>研究生</option><option>博士</option></select>
+        <select class="sf" id="sfCo" onchange="renderTable()"><option value="">全部公司</option></select>
+        <span class="rcnt" id="rcnt"></span>
+      </div>
+      <div class="tw"><table><thead><tr>
+        <th onclick="sortBy('name')">姓名</th><th onclick="sortBy('company')">客户公司</th><th onclick="sortBy('job')">岗位</th><th>部门</th><th onclick="sortBy('status')">状态</th><th>学历</th><th>城市</th><th>职级</th><th>操作</th>
+      </tr></thead><tbody id="tbody"></tbody></table></div>
+    </div>
+  </div>
+
+  <!-- MAPPING -->
+  <div class="page" id="pg-mapping">
+    <div class="ph"><div class="ph-l"><h1>组织架构 Mapping</h1><p>按部门查看候选人分布</p></div></div>
+    <div class="mmap" id="mmapGrid"></div>
+  </div>
+
+  <!-- KANBAN -->
+  <div class="page" id="pg-kanban">
+    <div class="ph"><div class="ph-l"><h1>招聘看板</h1><p>按招募进度追踪候选人</p></div></div>
+    <div class="kb" id="kanbanBoard"></div>
+  </div>
+
+  <!-- ANALYTICS -->
+  <div class="page" id="pg-analytics">
+    <div class="ph"><div class="ph-l"><h1>数据分析</h1><p>深度洞察人才数据</p></div></div>
+    <div class="cg2-2">
+      <div class="card chbox"><div class="ct" style="margin-bottom:8px">招募漏斗</div><canvas id="cFunnel"></canvas></div>
+      <div class="card chbox"><div class="ct" style="margin-bottom:8px">城市分布</div><canvas id="cCity"></canvas></div>
+      <div class="card chbox"><div class="ct" style="margin-bottom:8px">岗位构成</div><canvas id="cJob"></canvas></div>
+      <div class="card chbox"><div class="ct" style="margin-bottom:8px">学历x状态</div><canvas id="cCross"></canvas></div>
+    </div>
+  </div>
+
+  <!-- USER MANAGEMENT (Admin only) -->
+  <div class="page" id="pg-users">
+    <div class="ph"><div class="ph-l"><h1>用户管理</h1><p>管理系统用户账号与权限</p></div>
+      <div class="ph-r"><button class="btn btn-p" onclick="openAddUser()"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>添加用户</button></div>
+    </div>
+    <div class="card" style="padding:18px 22px">
+      <div class="tw"><table><thead><tr><th>用户名</th><th>邮箱</th><th>角色</th><th>注册时间</th><th>操作</th></tr></thead><tbody id="userTbody"></tbody></table></div>
+    </div>
+  </div>
+
+  <!-- SETTINGS -->
+  <div class="page" id="pg-settings">
+    <div class="ph"><div class="ph-l"><h1>系统设置</h1><p>个性化与安全管理</p></div></div>
+    <div class="sg">
+      <div class="card">
+        <div class="ct"><svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>安全设置</div>
+        <div class="srow"><div class="si2"><h4>修改密码</h4><p>更新登录密码</p></div><button class="btn btn-ghost btn-sm" onclick="openChangePw()">修改</button></div>
+        <div class="srow"><div class="si2"><h4>当前用户</h4><p id="settingUser">-</p></div></div>
+        <div class="srow"><div class="si2"><h4>当前角色</h4><p id="settingRole">-</p></div></div>
+      </div>
+      <div class="card">
+        <div class="ct"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>数据管理</div>
+        <div class="srow"><div class="si2"><h4>导出全部数据</h4><p>备份所有人才信息</p></div><button class="btn btn-g btn-sm" onclick="exportExcel()">导出</button></div>
+        <div class="srow"><div class="si2"><h4>导入 Excel</h4><p>批量导入候选人</p></div><button class="btn btn-ghost btn-sm" onclick="document.getElementById('impFile').click()">导入</button></div>
+        <div class="srow"><div class="si2"><h4>清空所有数据</h4><p>不可恢复，请谨慎操作</p></div><button class="btn btn-r btn-sm" onclick="clearAll()">清空</button></div>
+        <input type="file" id="impFile" accept=".xlsx,.xls" style="display:none" onchange="importExcel(event)">
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ADD/EDIT CANDIDATE MODAL -->
+<div class="mo" id="addMo">
+  <div class="mb">
+    <div class="mt"><span id="moTitle">添加候选人</span><button class="mclose" onclick="closeMo('addMo')">&#10005;</button></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:11px">
+      <div class="fld"><label>姓名<span class="req">*</span></label><input id="m_name" placeholder="候选人姓名"></div>
+      <div class="fld"><label>状态</label><select id="m_status"><option>正在联系中</option><option>合适</option><option>不合适</option><option>已面试</option><option>入职</option><option>待定</option><option>拒绝</option></select></div>
+      <div class="fld"><label>客户公司<span class="req">*</span></label><input id="m_co" placeholder="字节跳动"></div>
+      <div class="fld"><label>岗位<span class="req">*</span></label><input id="m_job" placeholder="AI算法负责人"></div>
+      <div class="fld"><label>部门</label><input id="m_dept" placeholder="自动驾驶事业部"></div>
+      <div class="fld"><label>学历</label><select id="m_edu"><option>本科</option><option>研究生</option><option>博士</option></select></div>
+      <div class="fld"><label>城市</label><input id="m_city" placeholder="上海"></div>
+      <div class="fld"><label>职级</label><input id="m_level" placeholder="P8 / T4"></div>
+      <div class="fld"><label>候选人当前公司</label><input id="m_cur" placeholder="候选人现在在哪家公司"></div>
+      <div class="fld"><label>联系电话</label><input id="m_phone" placeholder="选填"></div>
+      <div class="fld" style="grid-column:1/-1"><label>备注</label><textarea id="m_note" placeholder="其他补充信息..."></textarea></div>
+    </div>
+    <div class="frow">
+      <button class="btn btn-p" onclick="saveMo()"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>保存</button>
+      <button class="btn btn-ghost" onclick="closeMo('addMo')">取消</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD USER MODAL -->
+<div class="mo" id="userMo">
+  <div class="mb" style="width:400px">
+    <div class="mt"><span id="userMoTitle">添加用户</span><button class="mclose" onclick="closeMo('userMo')">&#10005;</button></div>
+    <div class="fld" style="margin-bottom:11px"><label>用户名<span class="req">*</span></label><input id="mu_name" placeholder="用户名"></div>
+    <div class="fld" style="margin-bottom:11px"><label>邮箱</label><input id="mu_email" type="email" placeholder="邮箱"></div>
+    <div class="fld" style="margin-bottom:11px"><label>密码<span class="req">*</span></label><input id="mu_pw" type="password" placeholder="至少6位"></div>
+    <div class="fld" style="margin-bottom:11px"><label>角色</label><select id="mu_role"><option value="user">普通用户</option><option value="admin">管理员</option></select></div>
+    <div class="frow">
+      <button class="btn btn-p" onclick="saveUser()">保存</button>
+      <button class="btn btn-ghost" onclick="closeMo('userMo')">取消</button>
+    </div>
+  </div>
+</div>
+
+<!-- CHANGE PASSWORD MODAL -->
+<div class="mo" id="pwMo">
+  <div class="mb" style="width:380px">
+    <div class="mt">修改密码<button class="mclose" onclick="closeMo('pwMo')">&#10005;</button></div>
+    <div class="fld" style="margin-bottom:11px"><label>当前密码</label><input type="password" id="pw_old" placeholder="输入当前密码"></div>
+    <div class="fld" style="margin-bottom:11px"><label>新密码</label><input type="password" id="pw_new" placeholder="至少6位"></div>
+    <div class="fld"><label>确认新密码</label><input type="password" id="pw_cf" placeholder="再次输入新密码"></div>
+    <div class="frow">
+      <button class="btn btn-p" onclick="savePw()">确认修改</button>
+      <button class="btn btn-ghost" onclick="closeMo('pwMo')">取消</button>
+    </div>
+  </div>
+</div>
+
+<div id="toastWrap"></div>
+<script>
+/* ============================================
+   FLY YUN v5.0 - 纯本地存储版（无数据库连接）
+   ============================================ */
+
+// == 本地存储 key ==
+const UK = 'flyyun_users';
+const SK = 'flyyun_data';
+const SESK = 'flyyun_session';
+
+// == 全局数据 ==
+let D = [];
+let editId = null, sortCol = null, sortDir = 1, CH = {};
+let currentUser = null;
+
+// == 用户数据层（纯 localStorage）==
+function getUsers() {
+  try { return JSON.parse(localStorage.getItem(UK) || '[]'); } catch(e) { return []; }
+}
+function saveUsers(users) { localStorage.setItem(UK, JSON.stringify(users)); }
+
+// == 人才数据层（纯 localStorage）==
+function getTalents() {
+  try { return JSON.parse(localStorage.getItem(SK) || '[]'); } catch(e) { return []; }
+}
+function saveTalents() { localStorage.setItem(SK, JSON.stringify(D)); }
+
+// == 初始化默认管理员 ==
+function initDefaultAdmin() {
+  const users = getUsers();
+  if (!users.length) {
+    const admin = { id: 1, username: 'admin', email: 'admin@flyyun.com', password: 'admin123', role: 'admin', createdAt: new Date().toISOString() };
+    saveUsers([admin]);
+  }
+}
+
+// == 登录 / 注册 Tab ==
+function switchAuth(tab) {
+  document.getElementById('tabLogin').classList.toggle('act', tab === 'login');
+  document.getElementById('tabReg').classList.toggle('act', tab === 'register');
+  document.getElementById('loginForm').style.display = tab === 'login' ? 'block' : 'none';
+  document.getElementById('regForm').style.display = tab === 'register' ? 'block' : 'none';
+  document.getElementById('lErr').textContent = '';
+  document.getElementById('rErr').textContent = '';
+}
+
+// == 登录 ==
+function doLogin() {
+  const username = document.getElementById('loginUser').value.trim();
+  const pw = document.getElementById('loginPw').value;
+  const err = document.getElementById('lErr');
+  if (!username || !pw) { err.textContent = '请输入用户名和密码'; return; }
+  const users = getUsers();
+  const user = users.find(u => u.username === username && u.password === pw);
+  if (!user) { err.textContent = '用户名或密码错误'; return; }
+  currentUser = user;
+  localStorage.setItem(SESK, JSON.stringify({ userId: user.id, ts: Date.now() }));
+  enterApp();
+  toast('欢迎回来，' + user.username + '！', 'ok');
+}
+
+// == 注册 ==
+function doRegister() {
+  const username = document.getElementById('regUser').value.trim();
+  const email = document.getElementById('regEmail').value.trim();
+  const pw = document.getElementById('regPw').value;
+  const pw2 = document.getElementById('regPw2').value;
+  const err = document.getElementById('rErr');
+  if (username.length < 3) { err.textContent = '用户名至少3个字符'; return; }
+  if (pw.length < 6) { err.textContent = '密码至少6位'; return; }
+  if (pw !== pw2) { err.textContent = '两次密码不一致'; return; }
+  const users = getUsers();
+  if (users.find(u => u.username === username)) { err.textContent = '用户名已存在'; return; }
+  const newUser = { id: Date.now(), username, email, password: pw, role: 'user', createdAt: new Date().toISOString() };
+  users.push(newUser);
+  saveUsers(users);
+  currentUser = newUser;
+  localStorage.setItem(SESK, JSON.stringify({ userId: newUser.id, ts: Date.now() }));
+  enterApp();
+  toast('注册成功，欢迎 ' + username + '！', 'ok');
+}
+
+// == 进入 App ==
+function enterApp() {
+  document.getElementById('authWrap').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  D = getTalents();
+  const navU = document.getElementById('navUsers');
+  if (navU) navU.style.display = currentUser.role === 'admin' ? 'flex' : 'none';
+  document.getElementById('topAv').textContent = (currentUser.username || '?')[0].toUpperCase();
+  document.getElementById('topName').textContent = currentUser.username;
+  document.getElementById('settingUser').textContent = currentUser.username;
+  document.getElementById('settingRole').textContent = currentUser.role === 'admin' ? '管理员' : '普通用户';
+  renderAll();
+  renderDash();
+}
+
+// == 退出 ==
+function doLogout() {
+  localStorage.removeItem(SESK);
+  currentUser = null;
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('authWrap').style.display = 'flex';
+  document.getElementById('loginUser').value = '';
+  document.getElementById('loginPw').value = '';
+}
+
+// == 检查会话 ==
+function checkSession() {
+  try {
+    const ses = JSON.parse(localStorage.getItem(SESK));
+    if (ses && Date.now() - ses.ts < 8 * 3600 * 1000) {
+      const users = getUsers();
+      const user = users.find(u => u.id === ses.userId);
+      if (user) { currentUser = user; enterApp(); return; }
+    }
+  } catch(e) {}
+}
+
+// == 页面切换 ==
+function switchPg(name, btn) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('act'));
+  document.querySelectorAll('.tnav').forEach(b => b.classList.remove('act'));
+  document.getElementById('pg-' + name).classList.add('act');
+  if (btn) btn.classList.add('act');
+  if (name === 'dash') renderDash();
+  if (name === 'talent') { renderTable(); populateCo(); }
+  if (name === 'mapping') renderMapping();
+  if (name === 'kanban') renderKanban();
+  if (name === 'analytics') renderAnalytics();
+  if (name === 'users') renderUsers();
+}
+
+function renderAll() { populateCo(); }
+
+// == 用户管理 ==
+function renderUsers() {
+  if (!currentUser || currentUser.role !== 'admin') return;
+  const users = getUsers();
+  const tb = document.getElementById('userTbody');
+  if (!tb) return;
+  tb.innerHTML = users.map(u => '<tr>' +
+    '<td><b>' + u.username + '</b></td>' +
+    '<td>' + (u.email || '-') + '</td>' +
+    '<td><span class="user-role role-' + u.role + '">' + (u.role === 'admin' ? '管理员' : '用户') + '</span></td>' +
+    '<td style="color:var(--sub);font-size:12px">' + (u.createdAt ? new Date(u.createdAt).toLocaleDateString('zh-CN') : '-') + '</td>' +
+    '<td><div class="ra" style="opacity:1">' +
+      (u.id !== 1 ? '<button class="btn btn-ghost btn-sm" onclick="toggleRole(' + u.id + ')">' + (u.role==='admin'?'设为用户':'设为管理员') + '</button>' +
+      '<button class="btn btn-r btn-sm" onclick="deleteUser(' + u.id + ')">删除</button>' : '<span style="color:var(--muted);font-size:12px">系统管理员</span>') +
+    '</div></td></tr>').join('');
+}
+
+function openAddUser() {
+  document.getElementById('userMoTitle').textContent = '添加用户';
+  document.getElementById('mu_name').value = '';
+  document.getElementById('mu_email').value = '';
+  document.getElementById('mu_pw').value = '';
+  document.getElementById('mu_role').value = 'user';
+  document.getElementById('userMo').classList.add('open');
+}
+
+function saveUser() {
+  const username = document.getElementById('mu_name').value.trim();
+  const email = document.getElementById('mu_email').value.trim();
+  const pw = document.getElementById('mu_pw').value;
+  const role = document.getElementById('mu_role').value;
+  if (!username || username.length < 3) { toast('用户名至少3个字符', 'err'); return; }
+  if (pw.length < 6) { toast('密码至少6位', 'err'); return; }
+  const users = getUsers();
+  if (users.find(u => u.username === username)) { toast('用户名已存在', 'err'); return; }
+  users.push({ id: Date.now(), username, email, password: pw, role, createdAt: new Date().toISOString() });
+  saveUsers(users);
+  closeMo('userMo');
+  renderUsers();
+  toast('用户已添加', 'ok');
+}
+
+function toggleRole(id) {
+  const users = getUsers();
+  const u = users.find(x => x.id === id);
+  if (u) { u.role = u.role === 'admin' ? 'user' : 'admin'; saveUsers(users); renderUsers(); toast('角色已更新', 'ok'); }
+}
+
+function deleteUser(id) {
+  if (!confirm('确认删除该用户？')) return;
+  const users = getUsers().filter(u => u.id !== id);
+  saveUsers(users);
+  renderUsers();
+  toast('用户已删除', 'info');
+}
+
+// == 修改密码 ==
+function openChangePw() {
+  document.getElementById('pw_old').value = '';
+  document.getElementById('pw_new').value = '';
+  document.getElementById('pw_cf').value = '';
+  document.getElementById('pwMo').classList.add('open');
+}
+
+function savePw() {
+  const o = document.getElementById('pw_old').value;
+  const n = document.getElementById('pw_new').value;
+  const c = document.getElementById('pw_cf').value;
+  if (o !== currentUser.password) { toast('当前密码不正确', 'err'); return; }
+  if (n.length < 6) { toast('新密码至少6位', 'err'); return; }
+  if (n !== c) { toast('两次密码不一致', 'err'); return; }
+  const users = getUsers();
+  const u = users.find(x => x.id === currentUser.id);
+  if (u) { u.password = n; saveUsers(users); }
+  currentUser.password = n;
+  closeMo('pwMo');
+  toast('密码修改成功', 'ok');
+}
+
+// == Modal helper ==
+function closeMo(id) { document.getElementById(id).classList.remove('open'); }
+
+// == Toast ==
+function toast(msg, type) {
+  type = type || 'info';
+  var el = document.createElement('div');
+  el.className = 'titem ' + type;
+  var icons = { ok: '\u2713', err: '\u2717', info: 'i' };
+  el.innerHTML = '<span class="tic" style="font-weight:800;font-size:15px">' + (icons[type]||'\u00B7') + '</span><span>' + msg + '</span>';
+  document.getElementById('toastWrap').appendChild(el);
+  setTimeout(function() { el.remove(); }, 3200);
+}
+
+/* ==== DASHBOARD ==== */
+function renderDash() {
+  document.getElementById('dashDate').textContent = new Date().toLocaleDateString('zh-CN', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+  var cos = new Set(D.map(function(i){return i.co}).filter(Boolean));
+  var jobs = new Set(D.map(function(i){return i.job}).filter(Boolean));
+  var joined = D.filter(function(i){return i.status === '入职'}).length;
+  var inter = D.filter(function(i){return i.status === '已面试'}).length;
+  var statsData = [
+    {l:'人才总数',v:D.length,acc:'linear-gradient(90deg,#2563eb,#7c3aed)',ibg:'rgba(37,99,235,.08)',ic:'var(--blue)',icon:'M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 7a4 4 0 1 0 0 0'},
+    {l:'核心客户',v:cos.size,acc:'linear-gradient(90deg,#7c3aed,#a855f7)',ibg:'rgba(124,58,237,.08)',ic:'var(--purple)',icon:'M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z'},
+    {l:'核心岗位',v:jobs.size,acc:'linear-gradient(90deg,#0891b2,#38bdf8)',ibg:'rgba(8,145,178,.08)',ic:'var(--cyan)',icon:'M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z'},
+    {l:'已入职',v:joined,acc:'linear-gradient(90deg,#059669,#10b981)',ibg:'rgba(5,150,105,.08)',ic:'var(--green)',icon:'M22 11.08V12a10 10 0 1 1-5.93-9.14'},
+    {l:'面试中',v:inter,acc:'linear-gradient(90deg,#d97706,#f59e0b)',ibg:'rgba(217,119,6,.08)',ic:'var(--amber)',icon:'M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01'},
+  ];
+  document.getElementById('statsRow').innerHTML = statsData.map(function(s){
+    return '<div class="sc" style="--acc:'+s.acc+';--ibg:'+s.ibg+';--ic:'+s.ic+'"><div class="sc-icon"><svg viewBox="0 0 24 24"><path d="'+s.icon+'"/></svg></div><div class="sc-lbl">'+s.l+'</div><div class="sc-num">'+s.v+'</div></div>';
+  }).join('');
+
+  var recent = D.slice(0, 5);
+  document.getElementById('actFeed').innerHTML = recent.length ? recent.map(function(i){
+    return '<div class="aitem"><div class="adot" style="background:rgba(37,99,235,.08)"><svg viewBox="0 0 24 24" style="stroke:var(--blue)"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div><div><div class="atit"><b>'+i.name+'</b> 已录入</div><div class="ameta">'+(i.co||'')+' \u00B7 '+(i.job||'')+' \u00B7 <span class="badge b-'+i.status+'">'+i.status+'</span></div></div></div>';
+  }).join('') : '<div style="color:var(--sub);font-size:13px;padding:16px 0">暂无活动记录</div>';
+
+  var statuses = ['正在联系中','合适','已面试','入职','不合适'];
+  document.getElementById('qstats').innerHTML = statuses.map(function(s){
+    var c = D.filter(function(i){return i.status === s}).length;
+    var p = D.length ? Math.round(c / D.length * 100) : 0;
+    return '<div style="margin-bottom:13px"><div style="display:flex;justify-content:space-between;margin-bottom:5px"><span class="badge b-'+s+'">'+s+'</span><span style="font-size:11px;color:var(--sub)">'+c+' ('+p+'%)</span></div><div class="pb"><div class="pf" style="width:'+p+'%;background:var(--blue)"></div></div></div>';
+  }).join('');
+  renderDashCharts();
+}
+
+function renderDashCharts() {
+  dch('cStatus'); dch('cEdu'); dch('cCo');
+  var sm={}, em={}, com={};
+  D.forEach(function(i){
+    if(i.status) sm[i.status] = (sm[i.status]||0) + 1;
+    if(i.edu) em[i.edu] = (em[i.edu]||0) + 1;
+    if(i.co) com[i.co] = (com[i.co]||0) + 1;
+  });
+  var pal = ['#2563eb','#059669','#7c3aed','#dc2626','#d97706','#0891b2','#ec4899'];
+  mkChart('cStatus','doughnut',Object.keys(sm),Object.values(sm),pal,{cutout:'65%',plugins:{legend:{position:'bottom',labels:{color:'#64748b',padding:12,font:{size:11}}}}});
+  mkChart('cEdu','polarArea',Object.keys(em),Object.values(em),['rgba(37,99,235,.6)','rgba(124,58,237,.6)','rgba(5,150,105,.6)'],{scales:{r:{ticks:{color:'#64748b',backdropColor:'transparent'},grid:{color:'rgba(0,0,0,.06)'}}},plugins:{legend:{position:'bottom',labels:{color:'#64748b',font:{size:11}}}}});
+  var topCo = Object.entries(com).sort(function(a,b){return b[1]-a[1]}).slice(0, 7);
+  mkChart('cCo','bar',topCo.map(function(c){return c[0]}),topCo.map(function(c){return c[1]}),['rgba(37,99,235,.6)'],{plugins:{legend:{display:false}},scales:{y:{ticks:{color:'#64748b'},grid:{color:'rgba(0,0,0,.05)'}},x:{ticks:{color:'#64748b',maxRotation:0},grid:{display:false}}}});
+}
+
+function mkChart(id, type, labels, vals, colors, opts) {
+  opts = opts || {};
+  var isBar = type === 'bar';
+  CH[id] = new Chart(document.getElementById(id), {
+    type: type,
+    data: { labels: labels, datasets: [{ data: vals, backgroundColor: isBar ? colors[0] : colors, borderWidth: 0, borderRadius: isBar ? 6 : 0, hoverOffset: isBar ? 0 : 5 }] },
+    options: Object.assign({ responsive: true, maintainAspectRatio: false }, opts)
+  });
+}
+function dch(id) { if (CH[id]) { CH[id].destroy(); delete CH[id]; } }
+
+/* ==== TABLE ==== */
+function renderTable() {
+  var kw = (document.getElementById('siSearch') ? document.getElementById('siSearch').value : '').toLowerCase();
+  var fs = document.getElementById('sfStatus') ? document.getElementById('sfStatus').value : '';
+  var fe = document.getElementById('sfEdu') ? document.getElementById('sfEdu').value : '';
+  var fc = document.getElementById('sfCo') ? document.getElementById('sfCo').value : '';
+  var f = D.filter(function(i){
+    return (!kw || [i.name,i.co,i.job,i.city,i.dept,i.cur].some(function(v){return (v||'').toLowerCase().indexOf(kw)>=0})) &&
+    (!fs || i.status === fs) && (!fe || i.edu === fe) && (!fc || i.co === fc);
+  });
+  if (sortCol) f.sort(function(a,b){ return ((a[sortCol]||'') > (b[sortCol]||'') ? sortDir : -sortDir); });
+  var rc = document.getElementById('rcnt');
+  if (rc) rc.textContent = '共 ' + f.length + ' 条';
+  var tb = document.getElementById('tbody');
+  if (!tb) return;
+  if (!f.length) { tb.innerHTML = '<tr><td colspan="9"><div class="empty"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><h3>无匹配候选人</h3><p>调整搜索条件</p></div></td></tr>'; return; }
+  tb.innerHTML = f.map(function(i){
+    return '<tr><td><div style="font-weight:600">'+i.name+'</div>'+(i.cur?'<div style="font-size:11px;color:var(--sub);margin-top:2px">来自：'+i.cur+'</div>':'')+'</td><td>'+(i.co||'-')+'</td><td>'+(i.job||'-')+'</td><td style="color:var(--sub);font-size:13px">'+(i.dept||'-')+'</td><td><span class="badge b-'+i.status+'">'+i.status+'</span></td><td>'+(i.edu||'-')+'</td><td>'+(i.city||'-')+'</td><td style="color:var(--blue);font-size:13px">'+(i.level||'-')+'</td><td><div class="ra"><button class="btn btn-ghost btn-sm" onclick="openEdit('+i.id+')">编辑</button><button class="btn btn-r btn-sm" onclick="removeItem('+i.id+')">删除</button></div></td></tr>';
+  }).join('');
+}
+
+function sortBy(col) {
+  if (sortCol === col) sortDir *= -1; else { sortCol = col; sortDir = 1; }
+  renderTable();
+}
+
+function populateCo() {
+  var sel = document.getElementById('sfCo');
+  if (!sel) return;
+  var cos = []; var seen = {};
+  D.forEach(function(i){ if(i.co && !seen[i.co]){seen[i.co]=1; cos.push(i.co);} });
+  cos.sort();
+  var cur = sel.value;
+  sel.innerHTML = '<option value="">全部公司</option>' + cos.map(function(c){ return '<option'+(c===cur?' selected':'')+'>'+c+'</option>'; }).join('');
+}
+
+/* ==== MAPPING ==== */
+function renderMapping() {
+  var map = {};
+  D.forEach(function(i){ var d = i.dept || '未分类'; if (!map[d]) map[d] = []; map[d].push(i); });
+  var g = document.getElementById('mmapGrid');
+  if (!g) return;
+  if (!Object.keys(map).length) { g.innerHTML = '<div class="empty" style="grid-column:1/-1"><svg viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg><h3>暂无数据</h3><p>添加候选人后此处显示</p></div>'; return; }
+  g.innerHTML = Object.keys(map).map(function(dept){
+    return '<div class="mc"><div class="mch"><div class="mch-t">'+dept+'</div><span class="mch-c">'+map[dept].length+'人</span></div><div>'+map[dept].map(function(p){
+      return '<div class="pr"><div class="pav">'+(p.name||'?')[0]+'</div><div class="pi"><div class="pn">'+p.name+'</div><div class="pm">'+[p.job,p.level,p.city].filter(Boolean).join(' \u00B7 ')+'</div></div><span class="badge b-'+p.status+'">'+p.status+'</span></div>';
+    }).join('')+'</div></div>';
+  }).join('');
+}
+
+/* ==== KANBAN ==== */
+function renderKanban() {
+  var cols = ['正在联系中','合适','已面试','入职','不合适','待定'];
+  var b = document.getElementById('kanbanBoard');
+  if (!b) return;
+  b.innerHTML = cols.map(function(st){
+    var items = D.filter(function(i){return i.status === st});
+    return '<div class="kc"><div class="kch"><span>'+st+'</span><span class="kcc">'+items.length+'</span></div>'+(items.length ? items.map(function(i){
+      return '<div class="kcard"><div class="kn">'+i.name+'</div><div class="km">'+(i.edu||'')+(i.level?' \u00B7 '+i.level:'')+'</div><div class="kcmp">'+(i.co||'')+(i.job?' \u00B7 '+i.job:'')+'</div></div>';
+    }).join('') : '<div style="color:var(--muted);font-size:12px;text-align:center;padding:16px 0">暂无</div>')+'</div>';
+  }).join('');
+}
+
+/* ==== ANALYTICS ==== */
+function renderAnalytics() {
+  ['cFunnel','cCity','cJob','cCross'].forEach(dch);
+  var so = ['正在联系中','合适','已面试','入职'];
+  mkChart('cFunnel','bar',so,so.map(function(s){return D.filter(function(i){return i.status===s}).length}),
+    ['rgba(37,99,235,.6)','rgba(217,119,6,.6)','rgba(124,58,237,.6)','rgba(5,150,105,.6)'],
+    {plugins:{legend:{display:false}},scales:{y:{ticks:{color:'#64748b'},grid:{color:'rgba(0,0,0,.05)'}},x:{ticks:{color:'#64748b'},grid:{display:false}}}});
+  var cm = {}; D.forEach(function(i){ if(i.city) cm[i.city] = (cm[i.city]||0)+1; });
+  var tc = Object.entries(cm).sort(function(a,b){return b[1]-a[1]}).slice(0,8);
+  mkChart('cCity','doughnut',tc.map(function(c){return c[0]}),tc.map(function(c){return c[1]}),
+    ['#2563eb','#7c3aed','#059669','#d97706','#dc2626','#0891b2','#ec4899','#6366f1'],
+    {cutout:'55%',plugins:{legend:{position:'right',labels:{color:'#64748b',font:{size:11}}}}});
+  var jm = {}; D.forEach(function(i){ if(i.job) jm[i.job] = (jm[i.job]||0)+1; });
+  var tj = Object.entries(jm).sort(function(a,b){return b[1]-a[1]}).slice(0,6);
+  mkChart('cJob','bar',tj.map(function(j){return j[0]}),tj.map(function(j){return j[1]}),['rgba(124,58,237,.6)'],
+    {plugins:{legend:{display:false}},scales:{y:{ticks:{color:'#64748b'},grid:{color:'rgba(0,0,0,.05)'}},x:{ticks:{color:'#64748b',maxRotation:30},grid:{display:false}}}});
+  var edus = ['本科','研究生','博士'], sts = ['合适','已面试','入职'];
+  CH.cCross = new Chart(document.getElementById('cCross'), {
+    type: 'bar',
+    data: { labels: edus, datasets: sts.map(function(s,i){return {
+      label: s,
+      data: edus.map(function(e){return D.filter(function(d){return d.edu===e && d.status===s}).length}),
+      backgroundColor: ['rgba(37,99,235,.6)','rgba(124,58,237,.6)','rgba(5,150,105,.6)'][i],
+      borderRadius: 6
+    }})},
+    options: { responsive:true, maintainAspectRatio:false,
+      plugins:{legend:{labels:{color:'#64748b',font:{size:11}}}},
+      scales:{x:{stacked:true,ticks:{color:'#64748b'},grid:{display:false}},y:{stacked:true,ticks:{color:'#64748b'},grid:{color:'rgba(0,0,0,.05)'}}}}
+  });
+}
+
+/* ==== CANDIDATE MODAL ==== */
+function openAdd() {
+  editId = null;
+  document.getElementById('moTitle').textContent = '添加候选人';
+  ['m_name','m_co','m_job','m_dept','m_city','m_level','m_cur','m_phone','m_note'].forEach(function(id){document.getElementById(id).value = ''});
+  document.getElementById('m_status').value = '正在联系中';
+  document.getElementById('m_edu').value = '本科';
+  document.getElementById('addMo').classList.add('open');
+}
+
+function openEdit(id) {
+  var item = D.find(function(i){return i.id === id});
+  if (!item) return;
+  editId = id;
+  document.getElementById('moTitle').textContent = '编辑候选人';
+  document.getElementById('m_name').value = item.name || '';
+  document.getElementById('m_co').value = item.co || '';
+  document.getElementById('m_job').value = item.job || '';
+  document.getElementById('m_dept').value = item.dept || '';
+  document.getElementById('m_status').value = item.status || '正在联系中';
+  document.getElementById('m_edu').value = item.edu || '本科';
+  document.getElementById('m_city').value = item.city || '';
+  document.getElementById('m_level').value = item.level || '';
+  document.getElementById('m_cur').value = item.cur || '';
+  document.getElementById('m_phone').value = item.phone || '';
+  document.getElementById('m_note').value = item.note || '';
+  document.getElementById('addMo').classList.add('open');
+}
+
+function saveMo() {
+  var name = document.getElementById('m_name').value.trim();
+  var co = document.getElementById('m_co').value.trim();
+  var job = document.getElementById('m_job').value.trim();
+  if (!name || !co || !job) { toast('请填写必填项：姓名、公司、岗位', 'err'); return; }
+  var item = {
+    id: editId || Date.now(), name: name, co: co, job: job,
+    dept: document.getElementById('m_dept').value.trim(),
+    status: document.getElementById('m_status').value,
+    edu: document.getElementById('m_edu').value,
+    city: document.getElementById('m_city').value.trim(),
+    level: document.getElementById('m_level').value.trim(),
+    cur: document.getElementById('m_cur').value.trim(),
+    phone: document.getElementById('m_phone').value.trim(),
+    note: document.getElementById('m_note').value.trim(),
+    ts: Date.now()
+  };
+  if (editId) {
+    var idx = D.findIndex(function(i){return i.id === editId}); if (idx >= 0) D[idx] = item;
+  } else {
+    D.unshift(item);
+  }
+  saveTalents();
+  closeMo('addMo'); renderAll(); renderTable(); populateCo();
+  toast(editId ? '候选人信息已更新' : '候选人已成功添加', 'ok');
+}
+
+function removeItem(id) {
+  if (!confirm('确认删除该候选人？')) return;
+  D = D.filter(function(i){return i.id !== id});
+  saveTalents();
+  renderAll(); renderTable(); populateCo();
+  toast('已删除', 'info');
+}
+
+function clearAll() {
+  if (!confirm('确认清空所有人才数据？此操作不可恢复！')) return;
+  D = [];
+  saveTalents();
+  renderAll(); renderTable();
+  toast('数据已清空', 'info');
+}
+
+/* ==== EXCEL ==== */
+function exportExcel() {
+  if (!D.length) { toast('暂无数据可导出', 'err'); return; }
+  var rows = D.map(function(i){return {'姓名':i.name,'客户公司':i.co,'岗位':i.job,'部门':i.dept,'状态':i.status,'学历':i.edu,'城市':i.city,'职级':i.level,'当前公司':i.cur,'联系电话':i.phone,'备注':i.note}});
+  var ws = XLSX.utils.json_to_sheet(rows);
+  var wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, '人才库');
+  XLSX.writeFile(wb, 'FLY_YUN_v5.xlsx');
+  toast('Excel 导出成功', 'ok');
+}
+
+function importExcel(e) {
+  var f = e.target.files[0]; if (!f) return;
+  var rd = new FileReader();
+  rd.onload = function(ev) {
+    try {
+      var wb = XLSX.read(ev.target.result, {type:'binary'});
+      var ws = wb.Sheets[wb.SheetNames[0]];
+      var rows = XLSX.utils.sheet_to_json(ws);
+      var imp = rows.map(function(r,i){return {
+        id: Date.now()+i, name:r['姓名']||r['name']||'', co:r['客户公司']||r['company']||'',
+        job:r['岗位']||r['job']||'', dept:r['部门']||r['dept']||'',
+        status:r['状态']||r['status']||'正在联系中', edu:r['学历']||r['edu']||'本科',
+        city:r['城市']||r['city']||'', level:r['职级']||r['level']||'',
+        cur:r['当前公司']||r['cur']||'', phone:r['联系电话']||r['phone']||'',
+        note:r['备注']||r['note']||'', ts:Date.now()
+      }}).filter(function(r){return r.name});
+      D = imp.concat(D);
+      saveTalents();
+      renderAll(); renderTable(); populateCo();
+      toast('成功导入 ' + imp.length + ' 条记录', 'ok');
+    } catch(err) { toast('导入失败，请检查文件格式', 'err'); }
+  };
+  rd.readAsBinaryString(f);
+  e.target.value = '';
+}
+
+/* ==== INIT ==== */
+(function init() {
+  initDefaultAdmin();
+  document.querySelectorAll('.mo').forEach(function(mo){
+    mo.addEventListener('click', function(e){ if (e.target === mo) mo.classList.remove('open'); });
+  });
+  document.getElementById('loginPw').addEventListener('keydown', function(e){ if (e.key === 'Enter') doLogin(); });
+  document.getElementById('loginUser').addEventListener('keydown', function(e){ if (e.key === 'Enter') doLogin(); });
+  checkSession();
+})();
+</script>
+</body>
+</html>
