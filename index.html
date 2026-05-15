@@ -544,7 +544,7 @@ tbody tr:hover .ra{opacity:1}
           <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
         </button>
         <div class="l-err" id="lErr"></div>
-        <div class="l-hint">默认管理员：<code>admin</code> / <code>admin123</code></div>
+        <div class="l-hint">默认管理员：<code>admin</code> / <code>Fy123456</code></div>
       </div>
       <!-- Register Form -->
       <div id="regForm" style="display:none">
@@ -889,9 +889,20 @@ async function cloudClearTalents() {
 function initDefaultAdmin() {
   const users = getUsers();
   if (!users.length) {
-    const admin = { id: 1, username: 'admin', email: 'admin@flyyun.com', password: 'admin123', role: 'admin', createdAt: new Date().toISOString() };
+    const admin = { id: 1, username: 'admin', email: 'admin@flyyun.com', password: 'Fy123456', role: 'admin', createdAt: new Date().toISOString() };
     saveUsers([admin]);
     cloudUpsertUser(admin);
+  } else {
+    // 强制升级旧的 admin 密码到新密码
+    var changed = false;
+    users.forEach(function(u){
+      if (u.username === 'admin' && u.password === 'admin123') {
+        u.password = 'Fy123456';
+        changed = true;
+        cloudUpsertUser(u);
+      }
+    });
+    if (changed) saveUsers(users);
   }
 }
 
