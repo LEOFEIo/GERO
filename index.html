@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
 <meta http-equiv="X-Content-Type-Options" content="nosniff"/>
-<title>FLY YUN · 猎头人才系统</title>
+<title>FLY YUN · 猎头人才系统 v8.1</title>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
@@ -348,7 +348,78 @@ input[type="checkbox"].rcb{width:16px;height:16px;cursor:pointer;accent-color:va
 
 @media(max-width:1200px){.stats-row{grid-template-columns:repeat(3,1fr)}.cg2{grid-template-columns:repeat(2,1fr)}.kb{grid-template-columns:repeat(3,1fr)}}
 @media(max-width:900px){.t-nav{display:none}}
-@media(max-width:768px){.page{padding:20px 18px 80px}.stats-row{grid-template-columns:repeat(2,1fr)}.cg2,.cg2-2{grid-template-columns:1fr}.sg{grid-template-columns:1fr}.kb{grid-template-columns:repeat(2,1fr)}.ph-l h1{font-size:24px}}
+@media(max-width:768px){.page{padding:20px 18px 96px}.stats-row{grid-template-columns:repeat(2,1fr)}.cg2,.cg2-2{grid-template-columns:1fr}.sg{grid-template-columns:1fr}.kb{grid-template-columns:repeat(2,1fr)}.ph-l h1{font-size:24px}}
+
+/* ====== PASSWORD STRENGTH ====== */
+.pw-strength{margin-top:8px;display:flex;flex-direction:column;gap:5px}
+.pw-bars{display:flex;gap:4px}
+.pw-bar{flex:1;height:3px;border-radius:99px;background:var(--border2);transition:.3s}
+.pw-bar.fill-weak{background:#ef4444}
+.pw-bar.fill-fair{background:#f59e0b}
+.pw-bar.fill-good{background:#3b82f6}
+.pw-bar.fill-strong{background:#10b981}
+.pw-label{font-size:10px;font-weight:600;letter-spacing:.04em;color:var(--muted);transition:.3s}
+.pw-label.weak{color:#ef4444}
+.pw-label.fair{color:#f59e0b}
+.pw-label.good{color:#3b82f6}
+.pw-label.strong{color:#10b981}
+
+/* ====== SEARCH SUGGESTIONS ====== */
+.search-wrap{position:relative}
+.suggest-box{position:absolute;top:calc(100% + 6px);left:0;right:0;background:var(--card);border:1px solid var(--border2);border-radius:var(--r-md);box-shadow:var(--shadow-lg);z-index:500;overflow:hidden;display:none;animation:mIn .18s cubic-bezier(.34,1.2,.64,1)}
+.suggest-box.open{display:block}
+.suggest-item{padding:10px 14px;font-size:13px;color:var(--text);cursor:pointer;display:flex;align-items:center;gap:9px;transition:.12s}
+.suggest-item:hover{background:var(--accent-soft);color:var(--accent)}
+.suggest-item svg{width:12px;height:12px;stroke:var(--muted);fill:none;stroke-width:2;flex-shrink:0}
+.suggest-item:hover svg{stroke:var(--accent)}
+.suggest-section{padding:6px 14px 4px;font-size:10px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}
+
+/* ====== SKELETON LOADER ====== */
+@keyframes shimmer{0%{background-position:-600px 0}100%{background-position:600px 0}}
+.skeleton{border-radius:8px;background:linear-gradient(90deg,var(--card2) 25%,var(--border) 50%,var(--card2) 75%);background-size:600px 100%;animation:shimmer 1.5s infinite linear}
+.sk-row{display:flex;gap:12px;margin-bottom:12px;align-items:center}
+.sk-circle{width:36px;height:36px;border-radius:50%;flex-shrink:0}
+.sk-line{height:12px;border-radius:6px}
+.sk-line.w30{width:30%}
+.sk-line.w50{width:50%}
+.sk-line.w70{width:70%}
+.sk-line.w100{width:100%}
+.sk-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r-lg);padding:22px;margin-bottom:14px}
+
+/* ====== MOBILE BOTTOM NAV ====== */
+.mob-nav{display:none;position:fixed;bottom:0;left:0;right:0;z-index:300;background:var(--surface);border-top:1px solid var(--border);padding:0 4px env(safe-area-inset-bottom,0);backdrop-filter:blur(20px) saturate(180%);-webkit-backdrop-filter:blur(20px) saturate(180%)}
+[data-theme="dark"] .mob-nav{background:rgba(13,12,10,.88)}
+.mob-nav-inner{display:flex;justify-content:space-around;align-items:stretch}
+.mnav{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding:8px 2px;border:none;background:transparent;color:var(--muted);cursor:pointer;transition:.18s;min-height:56px;font-size:9px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;font-family:var(--f-body)}
+.mnav svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.8;flex-shrink:0}
+.mnav.act{color:var(--accent)}
+.mnav.act svg{stroke:var(--accent)}
+@media(max-width:900px){.mob-nav{display:block}.fab{display:none}}
+
+/* ====== SESSION EXPIRY BANNER ====== */
+.session-banner{display:none;position:fixed;top:64px;left:50%;transform:translateX(-50%);z-index:600;background:linear-gradient(135deg,var(--amber),#f97316);color:#fff;padding:10px 20px;border-radius:99px;font-size:13px;font-weight:600;box-shadow:0 8px 24px rgba(217,119,6,.35);gap:10px;align-items:center;animation:slideDown .3s ease;white-space:nowrap}
+.session-banner.show{display:flex}
+.session-banner button{background:rgba(255,255,255,.25);border:none;color:#fff;padding:4px 12px;border-radius:99px;font-size:12px;font-weight:700;cursor:pointer;transition:.15s}
+.session-banner button:hover{background:rgba(255,255,255,.4)}
+
+/* ====== IMPORT PROGRESS ====== */
+.import-overlay{display:none;position:fixed;inset:0;z-index:900;background:rgba(20,16,10,.5);backdrop-filter:blur(6px);align-items:center;justify-content:center}
+.import-overlay.show{display:flex}
+.import-box{background:var(--card);border:1px solid var(--border2);border-radius:var(--r-xl);padding:36px 44px;text-align:center;box-shadow:var(--shadow-lg)}
+.import-spinner{width:48px;height:48px;border:3px solid var(--border2);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 16px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.import-box p{font-size:14px;color:var(--sub);margin-top:6px}
+
+/* ====== MISC UPGRADES ====== */
+.topbar-search{display:none;flex:1;max-width:320px}
+@media(min-width:901px){.topbar-search{display:flex;position:relative}}
+.topbar-search input{width:100%;height:34px;padding:0 14px 0 36px;background:var(--card2);border:1px solid transparent;border-radius:99px;color:var(--text);font-family:var(--f-body);font-size:13px;outline:none;transition:.18s}
+.topbar-search input:focus{border-color:var(--accent);background:var(--card);box-shadow:0 0 0 3px var(--accent-soft)}
+.topbar-search svg{position:absolute;left:12px;top:50%;transform:translateY(-50%);width:14px;height:14px;stroke:var(--muted);fill:none;stroke-width:2;pointer-events:none}
+.cnt-badge{display:inline-flex;align-items:center;justify-content:center;min-width:18px;height:18px;border-radius:99px;background:var(--accent);color:#fff;font-size:9px;font-weight:800;padding:0 4px;margin-left:4px;font-family:var(--f-display)}
+.page-loader{position:fixed;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--accent),var(--accent2),var(--violet));z-index:9999;transform:scaleX(0);transform-origin:left;transition:.3s ease;border-radius:0 99px 99px 0}
+.page-loader.loading{animation:pageLoad 1.2s ease-in-out infinite}
+@keyframes pageLoad{0%{transform:scaleX(0)}50%{transform:scaleX(.7)}100%{transform:scaleX(1);opacity:0}}
 </style>
 </head>
 <body>
@@ -373,7 +444,7 @@ input[type="checkbox"].rcb{width:16px;height:16px;cursor:pointer;accent-color:va
       </div>
       <div class="hero-foot">
         <span>&copy; 2026 FLY YUN</span>
-        <span>v8.0 · 流光橙曜</span>
+        <span>v8.1 · 流光橙曜</span>
       </div>
     </div>
 
@@ -397,8 +468,12 @@ input[type="checkbox"].rcb{width:16px;height:16px;cursor:pointer;accent-color:va
           </div>
           <label class="l-lbl">设置密码</label>
           <div class="l-ifield">
-            <input class="l-input" id="setupPw" type="password" placeholder="至少 8 位，含字母与数字" autocomplete="new-password">
+            <input class="l-input" id="setupPw" type="password" placeholder="至少 8 位，含字母与数字" autocomplete="new-password" oninput="checkPwStrength(this.value,'setupPwStrength')">
             <svg class="l-iicon" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          </div>
+          <div class="pw-strength" id="setupPwStrength" style="display:none">
+            <div class="pw-bars"><div class="pw-bar" id="setupBar0"></div><div class="pw-bar" id="setupBar1"></div><div class="pw-bar" id="setupBar2"></div><div class="pw-bar" id="setupBar3"></div></div>
+            <span class="pw-label" id="setupPwLabel"></span>
           </div>
           <label class="l-lbl">确认密码</label>
           <div class="l-ifield">
@@ -454,8 +529,12 @@ input[type="checkbox"].rcb{width:16px;height:16px;cursor:pointer;accent-color:va
             </div>
             <label class="l-lbl">密码</label>
             <div class="l-ifield">
-              <input class="l-input" id="regPw" type="password" placeholder="至少 6 位" autocomplete="new-password">
+              <input class="l-input" id="regPw" type="password" placeholder="至少 6 位" autocomplete="new-password" oninput="checkPwStrength(this.value,'regPwStrength')">
               <svg class="l-iicon" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            </div>
+            <div class="pw-strength" id="regPwStrength" style="display:none">
+              <div class="pw-bars"><div class="pw-bar" id="regBar0"></div><div class="pw-bar" id="regBar1"></div><div class="pw-bar" id="regBar2"></div><div class="pw-bar" id="regBar3"></div></div>
+              <span class="pw-label" id="regPwLabel"></span>
             </div>
             <label class="l-lbl">确认密码</label>
             <div class="l-ifield">
@@ -544,7 +623,9 @@ input[type="checkbox"].rcb{width:16px;height:16px;cursor:pointer;accent-color:va
         </div>
       </div>
       <div class="sbar">
-        <div class="sw"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><input class="si" id="siSearch" placeholder="搜索姓名、公司、岗位、城市、标签..." oninput="renderTable()"></div>
+        <div class="sw search-wrap"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><input class="si" id="siSearch" placeholder="搜索姓名、公司、岗位、城市、标签..." oninput="onSearchInput()">
+          <div class="suggest-box" id="suggestBox"></div>
+        </div>
         <select class="sf" id="sfStatus" onchange="renderTable()"><option value="">全部状态</option><option>正在联系中</option><option>合适</option><option>不合适</option><option>已面试</option><option>入职</option><option>待定</option><option>拒绝</option></select>
         <select class="sf" id="sfEdu" onchange="renderTable()"><option value="">全部学历</option><option>本科</option><option>研究生</option><option>博士</option></select>
         <select class="sf" id="sfCo" onchange="renderTable()"><option value="">全部公司</option></select>
@@ -688,14 +769,57 @@ input[type="checkbox"].rcb{width:16px;height:16px;cursor:pointer;accent-color:va
 
 <div id="toastWrap"></div>
 <button class="fab" onclick="openAdd()" title="新增候选人"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
+
+<!-- 页面加载进度条 -->
+<div class="page-loader" id="pageLoader"></div>
+
+<!-- 会话即将过期横幅 -->
+<div class="session-banner" id="sessionBanner">
+  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+  <span>登录会话即将过期</span>
+  <button onclick="renewSession()">续期</button>
+  <button onclick="document.getElementById('sessionBanner').classList.remove('show')" style="background:rgba(255,255,255,.1)">✕</button>
+</div>
+
+<!-- 导入进度遮罩 -->
+<div class="import-overlay" id="importOverlay">
+  <div class="import-box">
+    <div class="import-spinner"></div>
+    <div style="font-size:16px;font-weight:700;color:var(--text)">正在导入数据…</div>
+    <p>请稍候，正在解析并写入记录</p>
+  </div>
+</div>
+
+<!-- 移动端底部导航 -->
+<nav class="mob-nav" id="mobNav">
+  <div class="mob-nav-inner">
+    <button class="mnav act" data-pg="dash" onclick="switchPg('dash',this);syncMobNav(this)">
+      <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>概览
+    </button>
+    <button class="mnav" data-pg="talent" onclick="switchPg('talent',this);syncMobNav(this)">
+      <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>人才库
+    </button>
+    <button class="mnav" data-pg="kanban" onclick="switchPg('kanban',this);syncMobNav(this)">
+      <svg viewBox="0 0 24 24"><rect x="3" y="3" width="5" height="18"/><rect x="10" y="3" width="5" height="12"/><rect x="17" y="3" width="5" height="15"/></svg>看板
+    </button>
+    <button class="mnav" data-pg="analytics" onclick="switchPg('analytics',this);syncMobNav(this)">
+      <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>分析
+    </button>
+    <button class="mnav" data-pg="settings" onclick="switchPg('settings',this);syncMobNav(this)">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>设置
+    </button>
+  </div>
+</nav>
 <script>
 /* ============================================
-   FLY YUN v8.0 — 流光橙曜版（安全升级）
+   FLY YUN v8.1 — 流光橙曜版（全面优化升级）
    ============================================
-   * UI：暗夜+珊瑚橙 / 玻璃态 / Inter 字体
+   * UI v8.1：密码强度指示器 / 搜索建议下拉 / 移动端底栏导航
+            / 会话过期提示 / 导入进度遮罩 / 防抖搜索
    * 安全：移除源码中的硬编码账户密码；首次访问由用户自助创建管理员；
           所有密码使用 SHA-256 + per-user salt 哈希存储
    * 缓存：版本号机制（STORAGE_VERSION）自动清理旧版缓存
+   * 性能：防抖搜索 / 图表懒加载 / requestAnimationFrame 数字动画
    ============================================ */
 
 /* ====== 1. Supabase 配置（填入后自动启用云端） ====== */
@@ -740,7 +864,7 @@ const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 */
 
 /* ====== 3. 本地存储 key & 缓存版本号（升级时自动清理旧数据） ====== */
-const STORAGE_VERSION = 'v8.0';   // 升级版本会触发缓存重置
+const STORAGE_VERSION = 'v8.1';   // 升级版本会触发缓存重置
 const VK = 'flyyun_storage_ver';
 const UK = 'flyyun_users';
 const SK = 'flyyun_data';
@@ -1030,10 +1154,13 @@ function enterApp() {
   document.getElementById('settingRole').textContent = currentUser.role === 'admin' ? '管理员' : '普通用户';
   renderAll();
   renderDash();
+  startSessionWatcher();
 }
 
 // == 退出 ==
 function doLogout() {
+  if (_sessionTimer) clearTimeout(_sessionTimer);
+  document.getElementById('sessionBanner').classList.remove('show');
   localStorage.removeItem(SESK);
   currentUser = null;
   document.getElementById('app').style.display = 'none';
@@ -1046,11 +1173,40 @@ function doLogout() {
 function checkSession() {
   try {
     const ses = JSON.parse(localStorage.getItem(SESK));
-    if (ses && Date.now() - ses.ts < 8 * 3600 * 1000) {
+    if (ses && Date.now() - ses.ts < 12 * 3600 * 1000) {
       const users = getUsers();
       const user = users.find(u => u.id === ses.userId);
-      if (user) { currentUser = user; enterApp(); return; }
+      if (user) { currentUser = user; enterApp(); startSessionWatcher(); return; }
     }
+  } catch(e) {}
+}
+
+/* 会话到期前 30 分钟提示续期 */
+let _sessionTimer = null;
+function startSessionWatcher() {
+  if (_sessionTimer) clearTimeout(_sessionTimer);
+  try {
+    const ses = JSON.parse(localStorage.getItem(SESK));
+    if (!ses) return;
+    const remaining = 12 * 3600 * 1000 - (Date.now() - ses.ts);
+    const warnAt = remaining - 30 * 60 * 1000; // 剩余 30 分钟时提示
+    if (warnAt > 0) {
+      _sessionTimer = setTimeout(function(){
+        document.getElementById('sessionBanner').classList.add('show');
+      }, warnAt);
+    } else {
+      // 已在警告窗口内
+      document.getElementById('sessionBanner').classList.add('show');
+    }
+  } catch(e) {}
+}
+
+function renewSession() {
+  try {
+    localStorage.setItem(SESK, JSON.stringify({ userId: currentUser.id, ts: Date.now() }));
+    document.getElementById('sessionBanner').classList.remove('show');
+    startSessionWatcher();
+    toast('会话已续期 12 小时', 'ok');
   } catch(e) {}
 }
 
@@ -1060,6 +1216,13 @@ function switchPg(name, btn) {
   document.querySelectorAll('.tnav').forEach(b => b.classList.remove('act'));
   document.getElementById('pg-' + name).classList.add('act');
   if (btn) btn.classList.add('act');
+  // 同步移动端底栏
+  document.querySelectorAll('.mnav').forEach(function(b){
+    b.classList.toggle('act', b.getAttribute('data-pg') === name);
+  });
+  // 页面加载进度条动效
+  var loader = document.getElementById('pageLoader');
+  if (loader) { loader.classList.add('loading'); setTimeout(function(){ loader.classList.remove('loading'); }, 600); }
   if (name === 'dash') renderDash();
   if (name === 'talent') { renderTable(); populateCo(); }
   if (name === 'mapping') renderMapping();
@@ -1564,6 +1727,8 @@ function exportExcel() {
 
 function importExcel(e) {
   var f = e.target.files[0]; if (!f) return;
+  var overlay = document.getElementById('importOverlay');
+  if (overlay) overlay.classList.add('show');
   var rd = new FileReader();
   rd.onload = function(ev) {
     try {
@@ -1589,17 +1754,123 @@ function importExcel(e) {
       }).filter(function(r){return r.name});
       D = imp.concat(D);
       saveTalents();
-      // 批量同步到云端
       if (CLOUD_OK) { imp.forEach(function(t){ cloudUpsertTalent(t); }); }
       renderAll(); renderTable(); populateCo();
+      if (overlay) overlay.classList.remove('show');
       toast('成功导入 ' + imp.length + ' 条记录', 'ok');
-    } catch(err) { toast('导入失败，请检查文件格式', 'err'); }
+    } catch(err) {
+      if (overlay) overlay.classList.remove('show');
+      toast('导入失败，请检查文件格式', 'err');
+    }
   };
   rd.readAsBinaryString(f);
   e.target.value = '';
 }
 
 /* ==== SMART FEATURES ==== */
+
+// ====== 密码强度检测 ======
+function checkPwStrength(pw, containerId) {
+  var wrap = document.getElementById(containerId);
+  if (!wrap) return;
+  if (!pw) { wrap.style.display = 'none'; return; }
+  wrap.style.display = 'flex';
+  var score = 0;
+  if (pw.length >= 8) score++;
+  if (/[A-Z]/.test(pw) && /[a-z]/.test(pw)) score++;
+  if (/\d/.test(pw)) score++;
+  if (/[^A-Za-z0-9]/.test(pw)) score++;
+  var levels = [
+    { cls: 'weak',   fill: 'fill-weak',   label: '强度：弱',  bars: 1 },
+    { cls: 'fair',   fill: 'fill-fair',   label: '强度：一般', bars: 2 },
+    { cls: 'good',   fill: 'fill-good',   label: '强度：良好', bars: 3 },
+    { cls: 'strong', fill: 'fill-strong', label: '强度：强',  bars: 4 }
+  ];
+  var lvl = levels[Math.max(0, score - 1)];
+  // 更新4根条
+  var prefix = containerId.replace('PwStrength','Bar').replace('pwStrength','Bar');
+  // 兼容两种 id 命名：setupBar0~3 / regBar0~3
+  var barPrefix = containerId === 'setupPwStrength' ? 'setupBar' : 'regBar';
+  for (var i = 0; i < 4; i++) {
+    var bar = document.getElementById(barPrefix + i);
+    if (!bar) continue;
+    bar.className = 'pw-bar' + (i < lvl.bars ? ' ' + lvl.fill : '');
+  }
+  var lbl = document.getElementById(barPrefix.replace('Bar','PwLabel'));
+  if (!lbl) {
+    // fallback: find by label id
+    lbl = containerId === 'setupPwStrength'
+      ? document.getElementById('setupPwLabel')
+      : document.getElementById('regPwLabel');
+  }
+  if (lbl) { lbl.className = 'pw-label ' + lvl.cls; lbl.textContent = lvl.label; }
+}
+
+// ====== 防抖搜索 ======
+var _searchTimer = null;
+function onSearchInput() {
+  var box = document.getElementById('suggestBox');
+  var kw = (document.getElementById('siSearch').value || '').trim();
+  // 先渲染建议
+  renderSuggestions(kw);
+  // 防抖 220ms 后执行表格渲染
+  clearTimeout(_searchTimer);
+  _searchTimer = setTimeout(function() { renderTable(); }, 220);
+}
+
+// ====== 搜索建议 ======
+function renderSuggestions(kw) {
+  var box = document.getElementById('suggestBox');
+  if (!box) return;
+  if (!kw || kw.length < 1) { box.classList.remove('open'); return; }
+  var kwL = kw.toLowerCase();
+  var names = [], companies = [], jobs = [];
+  var seenN = {}, seenC = {}, seenJ = {};
+  D.forEach(function(i) {
+    if (i.name && i.name.toLowerCase().indexOf(kwL) >= 0 && !seenN[i.name]) { seenN[i.name]=1; names.push(i.name); }
+    if (i.co && i.co.toLowerCase().indexOf(kwL) >= 0 && !seenC[i.co]) { seenC[i.co]=1; companies.push(i.co); }
+    if (i.job && i.job.toLowerCase().indexOf(kwL) >= 0 && !seenJ[i.job]) { seenJ[i.job]=1; jobs.push(i.job); }
+  });
+  names = names.slice(0,3); companies = companies.slice(0,3); jobs = jobs.slice(0,3);
+  if (!names.length && !companies.length && !jobs.length) { box.classList.remove('open'); return; }
+  var personIcon = '<svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>';
+  var buildingIcon = '<svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>';
+  var briefIcon = '<svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>';
+  var html = '';
+  function highlight(str) {
+    var idx = str.toLowerCase().indexOf(kwL);
+    if (idx < 0) return str;
+    return str.slice(0,idx) + '<b style="color:var(--accent)">' + str.slice(idx, idx+kw.length) + '</b>' + str.slice(idx+kw.length);
+  }
+  if (names.length) {
+    html += '<div class="suggest-section">候选人</div>';
+    html += names.map(function(n){ return '<div class="suggest-item" onclick="applySuggest(\''+n.replace(/'/g,"\\'")+'\')">'+personIcon+highlight(n)+'</div>'; }).join('');
+  }
+  if (companies.length) {
+    html += '<div class="suggest-section">公司</div>';
+    html += companies.map(function(c){ return '<div class="suggest-item" onclick="applySuggest(\''+c.replace(/'/g,"\\'")+'\')">'+buildingIcon+highlight(c)+'</div>'; }).join('');
+  }
+  if (jobs.length) {
+    html += '<div class="suggest-section">岗位</div>';
+    html += jobs.map(function(j){ return '<div class="suggest-item" onclick="applySuggest(\''+j.replace(/'/g,"\\'")+'\')">'+briefIcon+highlight(j)+'</div>'; }).join('');
+  }
+  box.innerHTML = html;
+  box.classList.add('open');
+}
+
+function applySuggest(val) {
+  var si = document.getElementById('siSearch');
+  if (si) { si.value = val; }
+  var box = document.getElementById('suggestBox');
+  if (box) box.classList.remove('open');
+  renderTable();
+}
+
+// ====== 移动端底栏与桌面导航同步 ======
+function syncMobNav(activeBtn) {
+  document.querySelectorAll('.mnav').forEach(function(b){ b.classList.remove('act'); });
+  if (activeBtn) activeBtn.classList.add('act');
+}
 
 // AI 智能提示：根据候选人状态推荐下一步
 function getSmartTip(item) {
@@ -1851,6 +2122,15 @@ function getSearchSuggestions(kw) {
   var sp2 = document.getElementById('setupPw2');
   if (sp2) sp2.addEventListener('keydown', function(e){ if (e.key === 'Enter') doSetup(); });
 
+  // 点击外部关闭搜索建议
+  document.addEventListener('click', function(e){
+    var box = document.getElementById('suggestBox');
+    var si = document.getElementById('siSearch');
+    if (box && si && !si.contains(e.target) && !box.contains(e.target)) {
+      box.classList.remove('open');
+    }
+  });
+
   // 全局快捷键
   document.addEventListener('keydown', function(e){
     var inApp = document.getElementById('app').style.display === 'block';
@@ -1871,9 +2151,11 @@ function getSearchSuggestions(kw) {
     if (inApp && !typing && (e.key === 'n' || e.key === 'N') && !e.ctrlKey && !e.metaKey) {
       e.preventDefault(); openAdd();
     }
-    // Esc 关闭所有弹窗
+    // Esc 关闭所有弹窗 & 搜索建议
     if (e.key === 'Escape') {
       document.querySelectorAll('.mo.open').forEach(function(m){ m.classList.remove('open'); });
+      var box = document.getElementById('suggestBox');
+      if (box) box.classList.remove('open');
     }
   });
 
