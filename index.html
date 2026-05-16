@@ -812,10 +812,11 @@ input[type="checkbox"].rcb{width:16px;height:16px;cursor:pointer;accent-color:va
 <button class="fab" onclick="openAdd()" title="新增候选人"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
 <script>
 /* ============================================
-   FLY YUN v6.0 - 云端 + 本地双备份版
+   FLY YUN v7.0 - 云端 + 本地双备份版
    ============================================
    数据库：Supabase（在下方填入 URL 和 anon Key 即可启用云端）
    未配置时自动回退到 localStorage，功能完全不受影响。
+   v7 新增：深色模式、批量操作、跟进提醒、候选人详情、标签、星标
    ============================================ */
 
 /* ====== 1. Supabase 配置（填入后自动启用云端） ====== */
@@ -834,19 +835,23 @@ const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
    );
    -- 人才表
    create table if not exists flyyun_talents (
-     id     bigint primary key,
-     name   text not null,
-     co     text,
-     job    text,
-     dept   text,
-     status text,
-     edu    text,
-     city   text,
-     level  text,
-     cur    text,
-     phone  text,
-     note   text,
-     ts     bigint
+     id       bigint primary key,
+     name     text not null,
+     co       text,
+     job      text,
+     dept     text,
+     status   text,
+     edu      text,
+     city     text,
+     level    text,
+     cur      text,
+     phone    text,
+     note     text,
+     followup text,
+     tags     jsonb default '[]',
+     star     boolean default false,
+     history  jsonb default '[]',
+     ts       bigint
    );
    -- 开放匿名读写（演示用；生产环境请配 RLS 策略）
    alter table flyyun_users   enable row level security;
@@ -939,7 +944,13 @@ function saveTalents() { localStorage.setItem(SK, JSON.stringify(D)); }
 
 async function cloudUpsertTalent(t) {
   if (!CLOUD_OK) return;
-  try { await SB.from('flyyun_talents').upsert(t); } catch(e){}
+  try { await SB.from('flyyun_talents').upsert({
+    id:t.id, name:t.name, co:t.co, job:t.job, dept:t.dept,
+    status:t.status, edu:t.edu, city:t.city, level:t.level,
+    cur:t.cur, phone:t.phone, note:t.note,
+    followup:t.followup||null, tags:t.tags||[], star:!!t.star,
+    history:t.history||[], ts:t.ts
+  }); } catch(e){}
 }
 async function cloudDeleteTalent(id) {
   if (!CLOUD_OK) return;
